@@ -1,0 +1,28 @@
+# Secrets — never commit
+.env
+firebase-credentials.json
+
+# ML artifacts — large binary files, stored separately
+ml/*.pkl
+ml/*.keras
+ml/lstm_air_quality_model.keras/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Docker
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

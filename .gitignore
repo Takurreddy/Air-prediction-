@@ -1,0 +1,39 @@
+# ── Secrets ───────────────────────────────────────────────────────────────────
+.env
+*.env
+firebase-credentials.json
+
+# ── ML artifacts (large binaries — store in DVC / Git LFS separately) ────────
+*.pkl
+*.keras
+*.h5
+lstm_air_quality_model.keras/
+time_scaler.pkl
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Windows junk ──────────────────────────────────────────────────────────────
+Microsoft.Services.Store.winmd
+Transcripttxt.txt
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+*.log
