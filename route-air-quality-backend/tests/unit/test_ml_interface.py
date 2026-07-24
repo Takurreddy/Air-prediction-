@@ -2,6 +2,17 @@
 Unit tests for the ML interface helpers.
 No model files are required — the stub predictor path is exercised instead.
 """
+import os
+os.environ.setdefault("POSTGRES_USER", "test")
+os.environ.setdefault("POSTGRES_PASSWORD", "test")
+os.environ.setdefault("POSTGRES_DB", "test")
+os.environ.setdefault("POSTGRES_HOST", "localhost")
+os.environ.setdefault("INFLUX_URL", "http://localhost:8086")
+os.environ.setdefault("INFLUX_TOKEN", "test-token")
+os.environ.setdefault("INFLUX_ORG", "test-org")
+os.environ.setdefault("INFLUX_BUCKET", "test-bucket")
+os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-for-tests-only")
+
 import pytest
 
 from app.services.ml_interface import (

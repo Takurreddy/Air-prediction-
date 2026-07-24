@@ -184,16 +184,17 @@ def _straight_line_fallback(request: RouteRequest) -> list[list[Coordinate]]:
 
 # ── AQI scoring ───────────────────────────────────────────────────────────────
 
-def _get_aqi_for_point(lat: float, lon: float) -> tuple[float | None, str | None, str | None]:
+def _get_aqi_for_point(
+    lat: float, lon: float, db: Session | None = None
+) -> tuple[float | None, str | None, str | None]:
     """
     Return (aqi, category, source) for the nearest station to (lat, lon).
 
     1. Query InfluxDB for the nearest live reading within the configured radius.
-    2. If nothing found, return (None, None, None) — the caller may choose to
-       interpolate or skip.
-
-    TODO: Add LSTM-prediction fallback when live data is stale.
+    2. If missing, fall back to LSTM prediction for the nearest active station.
+    3. If neither live data nor prediction is available, return (None, None, None).
     """
+    # 1. Live AQI lookup
     try:
         tables = influx_db.query_nearest_station_aqi(
             latitude=lat,
@@ -202,7 +203,6 @@ def _get_aqi_for_point(lat: float, lon: float) -> tuple[float | None, str | None
         )
         best_aqi: float | None = None
         best_dist = float("inf")
-        nearest_station: str | None = None
 
         for table in tables:
             for record in table.records:
@@ -215,13 +215,70 @@ def _get_aqi_for_point(lat: float, lon: float) -> tuple[float | None, str | None
                 if dist < best_dist:
                     best_dist = dist
                     best_aqi = float(aqi_val)
-                    nearest_station = record.values.get("station_id")
 
         if best_aqi is not None:
             from app.services.ml_interface import categorize_aqi
             return best_aqi, categorize_aqi(best_aqi), "live"
     except Exception as exc:
-        log.warning("AQI lookup failed for (%s, %s): %s", lat, lon, exc)
+        log.warning("Live AQI lookup failed for (%s, %s): %s", lat, lon, exc)
+
+    # 2. LSTM Prediction Fallback
+    if db is not None:
+        try:
+            from app.models.station import Station
+            from app.services.ml_interface import SEQ_LENGTH, categorize_aqi, predict_aqi
+
+            stations = db.query(Station).filter(Station.is_active.is_(True)).all()
+            closest_station: Station | None = None
+            min_dist = float("inf")
+
+            for s in stations:
+                d = _haversine_km(lat, lon, s.latitude, s.longitude)
+                if d < min_dist:
+                    min_dist = d
+                    closest_station = s
+
+            # Fall back to nearest active station within 25 km
+            if closest_station and min_dist <= 25.0:
+                # Check for stored predictions in InfluxDB first
+                pred_tables = influx_db.query_predictions(
+                    station_id=closest_station.station_id, start="-6h"
+                )
+                for table in pred_tables:
+                    for record in table.records:
+                        pred_aqi = record.values.get("predicted_aqi")
+                        if pred_aqi is not None:
+                            return float(pred_aqi), categorize_aqi(float(pred_aqi)), "predicted_lstm"
+
+                # Otherwise run dynamic prediction if lookback sequence exists
+                tables = influx_db.query_range(
+                    measurement="air_quality",
+                    city=closest_station.city,
+                    start=f"-{settings.lstm_lookback_hours}h",
+                    station_id=closest_station.station_id,
+                )
+                rows: list[dict] = []
+                for table in tables:
+                    for record in table.records:
+                        rows.append({
+                            "time": record.get_time(),
+                            "field": record.get_field(),
+                            "value": record.get_value(),
+                        })
+
+                if rows:
+                    from collections import defaultdict
+                    by_time: dict = defaultdict(dict)
+                    for r in rows:
+                        by_time[r["time"]][r["field"]] = r["value"]
+
+                    sorted_times = sorted(by_time.keys())[-SEQ_LENGTH:]
+                    if len(sorted_times) == SEQ_LENGTH:
+                        sequence = [by_time[t] for t in sorted_times]
+                        result = predict_aqi(closest_station.station_id, sequence)
+                        return result["predicted_aqi"], result["category"], "predicted_lstm"
+        except Exception as exc:
+            log.warning("LSTM fallback failed for (%s, %s): %s", lat, lon, exc)
 
     return None, None, None
 
@@ -248,7 +305,7 @@ def evaluate_routes(
         aqi_values: list[float] = []
 
         for wp in waypoints:
-            aqi, category, source = _get_aqi_for_point(wp.latitude, wp.longitude)
+            aqi, category, source = _get_aqi_for_point(wp.latitude, wp.longitude, db)
             scored_wps.append(
                 RouteWaypointOut(
                     latitude=wp.latitude,
