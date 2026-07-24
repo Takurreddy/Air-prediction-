@@ -1,16 +1,10 @@
 """
 Scheduled-task worker.
 
-Responsibilities
-────────────────
-  1. Trigger proactive LSTM predictions for all active stations on a
-     regular schedule so route evaluations can serve cached results quickly.
-  2. Evaluate user-defined AQI threshold alerts and dispatch notifications
-     (email / Firebase push) when thresholds are breached.
-  3. Purge expired / soft-deleted rows from Postgres to keep the DB lean.
-
-Current status: scaffold with clearly marked TODO sections.
-Run as:  python -m app.workers.scheduler
+Tasks:
+  1. Proactive LSTM predictions for all active stations every hour
+  2. Alert threshold evaluation every 10 minutes → Firebase push / email
+  3. Stale data purge every 24 hours
 """
 from __future__ import annotations
 
@@ -18,62 +12,195 @@ import asyncio
 import logging
 import signal
 import sys
+import uuid
+from datetime import datetime, timedelta, timezone
+
+from app.core.config import settings
+from app.database import influx as influx_db
+from app.database.postgres import SessionLocal
+from app.models.alert import Alert
+from app.models.station import Station
+from app.services.alert_service import dispatch_threshold_alert
+from app.services.ml_interface import FEATURE_ORDER, SEQ_LENGTH, predict_aqi
 
 log = logging.getLogger(__name__)
 
-
-# ── Scheduled tasks ───────────────────────────────────────────────────────────
-
-async def run_predictions_for_all_stations() -> None:
-    """
-    For each active station, fetch the last 24 h of readings from InfluxDB,
-    build the feature sequence, call predict_aqi(), and store the result.
-
-    TODO:
-      - Query all active Station rows from Postgres.
-      - For each station, call influx_db.query_range() for the lookback window.
-      - Reshape the result into a list[dict] matching FEATURE_ORDER.
-      - Call ml_interface.predict_aqi() and persist via influx_db.write_prediction().
-    """
-    log.info("[Scheduler] Proactive prediction pass — not yet implemented")
-
-
-async def evaluate_alert_thresholds() -> None:
-    """
-    Load all active alerts from Postgres, compare against the latest predicted
-    AQI for the associated station, and dispatch notifications if breached.
-
-    TODO:
-      - Query Alert rows where is_active=True from Postgres.
-      - Look up the most-recent predicted_aqi for each station from InfluxDB.
-      - If predicted_aqi >= threshold_aqi and last_triggered_at is None or
-        was more than X hours ago, fire the notification.
-      - Update Alert.last_triggered_at in Postgres.
-      - Dispatch via Firebase Admin SDK (push) or SMTP (email).
-    """
-    log.info("[Scheduler] Alert evaluation — not yet implemented")
-
-
-async def purge_stale_data() -> None:
-    """
-    Remove soft-deleted / expired rows to keep database size manageable.
-
-    TODO:
-      - Delete RouteQuery rows older than a configurable retention window.
-      - Delete deactivated Alert rows older than N days.
-    """
-    log.info("[Scheduler] Stale-data purge — not yet implemented")
-
-
-# ── Cron-style timing ─────────────────────────────────────────────────────────
-
-# How often (seconds) each task fires
-PREDICTION_INTERVAL   = 3_600   # 1 hour
-ALERT_EVAL_INTERVAL   = 600     # 10 minutes
-PURGE_INTERVAL        = 86_400  # 24 hours
+PREDICTION_INTERVAL = 3_600   # 1 hour
+ALERT_EVAL_INTERVAL = 600     # 10 minutes
+PURGE_INTERVAL      = 86_400  # 24 hours
 
 _shutdown = asyncio.Event()
 
+
+# ── Task 1: Proactive predictions ─────────────────────────────────────────────
+
+async def run_predictions_for_all_stations() -> None:
+    """Fetch last 24h readings per station, run LSTM, store prediction."""
+    db = SessionLocal()
+    try:
+        stations = db.query(Station).filter(Station.is_active.is_(True)).all()
+        log.info("[Scheduler] Running predictions for %d stations.", len(stations))
+
+        for station in stations:
+            try:
+                tables = influx_db.query_range(
+                    measurement="air_quality",
+                    city=station.city,
+                    start=f"-{settings.lstm_lookback_hours}h",
+                    station_id=station.station_id,
+                )
+
+                rows: list[dict] = []
+                for table in tables:
+                    for record in table.records:
+                        field = record.get_field()
+                        value = record.get_value()
+                        time  = record.get_time()
+                        rows.append({"time": time, "field": field, "value": value})
+
+                if not rows:
+                    continue
+
+                # Group by timestamp → build sequence dicts
+                from collections import defaultdict
+                by_time: dict = defaultdict(dict)
+                for r in rows:
+                    by_time[r["time"]][r["field"]] = r["value"]
+
+                sorted_times = sorted(by_time.keys())[-SEQ_LENGTH:]
+                if len(sorted_times) < SEQ_LENGTH:
+                    continue  # not enough data yet
+
+                sequence = [by_time[t] for t in sorted_times]
+
+                result = predict_aqi(station.station_id, sequence)
+
+                influx_db.write_prediction(
+                    station_id=station.station_id,
+                    latitude=station.latitude,
+                    longitude=station.longitude,
+                    inputs={k: result[k] for k in ("pm25", "pm10", "no2", "so2")},
+                    predicted_aqi=result["predicted_aqi"],
+                    category=result["category"],
+                    model_version=result["model_version"],
+                )
+                log.info(
+                    "[Scheduler] Prediction for %s: AQI=%.1f (%s)",
+                    station.station_id, result["predicted_aqi"], result["category"],
+                )
+
+            except Exception as exc:
+                log.warning("[Scheduler] Prediction failed for %s: %s", station.station_id, exc)
+
+    finally:
+        db.close()
+
+
+# ── Task 2: Alert threshold evaluation ────────────────────────────────────────
+
+async def evaluate_alert_thresholds() -> None:
+    """Check all active alerts against latest predictions, fire if breached."""
+    db = SessionLocal()
+    try:
+        alerts = db.query(Alert).filter(Alert.is_active.is_(True)).all()
+        if not alerts:
+            return
+
+        log.info("[Scheduler] Evaluating %d active alerts.", len(alerts))
+        now = datetime.now(timezone.utc)
+        cooldown = timedelta(hours=1)  # don't re-fire within 1 hour
+
+        for alert in alerts:
+            try:
+                # Skip if fired recently
+                if alert.last_triggered_at and (now - alert.last_triggered_at) < cooldown:
+                    continue
+
+                # Get latest prediction for this station
+                tables = influx_db.query_predictions(
+                    station_id=alert.station_id, start="-2h"
+                )
+                latest_aqi: float | None = None
+                latest_category: str = "Unknown"
+
+                for table in tables:
+                    for record in table.records:
+                        aqi_val = record.values.get("predicted_aqi")
+                        cat_val = record.values.get("category", "Unknown")
+                        if aqi_val is not None:
+                            latest_aqi = float(aqi_val)
+                            latest_category = str(cat_val)
+
+                if latest_aqi is None or latest_aqi < alert.threshold_aqi:
+                    continue
+
+                # Threshold breached — get user details
+                from app.models.user import User
+                user = db.query(User).filter(User.id == alert.user_id).first()
+                if not user:
+                    continue
+
+                fcm_token = (user.notification_prefs or {}).get("fcm_token")
+
+                dispatch_threshold_alert(
+                    db=db,
+                    user_id=user.id,
+                    user_email=user.email,
+                    fcm_token=fcm_token,
+                    station_id=alert.station_id,
+                    aqi=latest_aqi,
+                    category=latest_category,
+                    notify_push=alert.notify_push,
+                    notify_email=alert.notify_email,
+                )
+
+                alert.last_triggered_at = now
+                db.commit()
+
+                log.info(
+                    "[Scheduler] Alert fired for user=%s station=%s AQI=%.1f",
+                    alert.user_id, alert.station_id, latest_aqi,
+                )
+
+            except Exception as exc:
+                log.warning("[Scheduler] Alert eval failed for alert %s: %s", alert.id, exc)
+
+    finally:
+        db.close()
+
+
+# ── Task 3: Stale data purge ──────────────────────────────────────────────────
+
+async def purge_stale_data() -> None:
+    """Remove old route queries and inactive alerts."""
+    db = SessionLocal()
+    try:
+        from app.models.route import RouteQuery
+        cutoff = datetime.now(timezone.utc) - timedelta(days=30)
+
+        deleted_routes = (
+            db.query(RouteQuery)
+            .filter(RouteQuery.created_at < cutoff)
+            .delete(synchronize_session=False)
+        )
+        deleted_alerts = (
+            db.query(Alert)
+            .filter(Alert.is_active.is_(False))
+            .delete(synchronize_session=False)
+        )
+        db.commit()
+        log.info(
+            "[Scheduler] Purged %d route queries, %d inactive alerts.",
+            deleted_routes, deleted_alerts,
+        )
+    except Exception as exc:
+        log.warning("[Scheduler] Purge failed: %s", exc)
+        db.rollback()
+    finally:
+        db.close()
+
+
+# ── Periodic runner ───────────────────────────────────────────────────────────
 
 def _handle_signal(signum, frame):  # noqa: ANN001
     log.info("Scheduler received signal %s — shutting down.", signum)
@@ -81,17 +208,15 @@ def _handle_signal(signum, frame):  # noqa: ANN001
 
 
 async def _periodic(coro_fn, interval: int, name: str) -> None:
-    """Run `coro_fn` every `interval` seconds until shutdown is requested."""
     while not _shutdown.is_set():
         try:
             await coro_fn()
         except Exception:
-            log.exception("[Scheduler] '%s' task raised an unhandled exception.", name)
-
+            log.exception("[Scheduler] '%s' raised an unhandled exception.", name)
         try:
             await asyncio.wait_for(_shutdown.wait(), timeout=interval)
         except asyncio.TimeoutError:
-            pass  # normal — schedule next run
+            pass
 
 
 async def run() -> None:

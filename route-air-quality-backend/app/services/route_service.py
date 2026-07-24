@@ -60,21 +60,125 @@ def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 def _fetch_routes(request: RouteRequest) -> list[list[Coordinate]]:
     """
-    Fetch route alternatives from the routing provider.
-
-    Returns a list of alternatives; each alternative is an ordered list of
-    Coordinate waypoints (origin → intermediate points → destination).
-
-    TODO: Implement real routing via Google Maps Directions API or OSRM.
-          Use `settings.google_maps_api_key` / `settings.osrm_base_url`.
+    Fetch route alternatives from OSRM (free) or Google Maps if key is set.
+    Returns a list of alternatives; each is an ordered list of Coordinates.
     """
-    # Stub: return a single straight-line route (origin → destination)
+    if settings.google_maps_api_key:
+        return _fetch_routes_google(request)
+    return _fetch_routes_osrm(request)
+
+
+def _decode_polyline(encoded: str) -> list[Coordinate]:
+    """Decode a Google Maps encoded polyline string into Coordinate list."""
+    coords: list[Coordinate] = []
+    index, lat, lng = 0, 0, 0
+    while index < len(encoded):
+        for is_lng in (False, True):
+            shift, result = 0, 0
+            while True:
+                b = ord(encoded[index]) - 63
+                index += 1
+                result |= (b & 0x1F) << shift
+                shift += 5
+                if b < 0x20:
+                    break
+            delta = ~(result >> 1) if result & 1 else result >> 1
+            if is_lng:
+                lng += delta
+                coords.append(Coordinate(latitude=lat / 1e5, longitude=lng / 1e5))
+            else:
+                lat += delta
+    return coords
+
+
+def _fetch_routes_google(request: RouteRequest) -> list[list[Coordinate]]:
+    """Fetch up to 3 route alternatives from Google Maps Directions API."""
+    import httpx
+    waypoints_str = ""
+    if request.waypoints:
+        parts = [f"{w.latitude},{w.longitude}" for w in request.waypoints]
+        waypoints_str = "|".join(parts)
+
+    params = {
+        "origin":       f"{request.origin_lat},{request.origin_lon}",
+        "destination":  f"{request.dest_lat},{request.dest_lon}",
+        "alternatives": "true",
+        "key":          settings.google_maps_api_key,
+    }
+    if waypoints_str:
+        params["waypoints"] = waypoints_str
+
+    try:
+        resp = httpx.get(
+            "https://maps.googleapis.com/maps/api/directions/json",
+            params=params,
+            timeout=15,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        if data.get("status") != "OK":
+            log.warning("Google Maps returned status: %s", data.get("status"))
+            return _fetch_routes_osrm(request)
+
+        alternatives: list[list[Coordinate]] = []
+        for route in data.get("routes", []):
+            polyline = route["overview_polyline"]["points"]
+            coords = _decode_polyline(polyline)
+            # Sample every Nth point to keep waypoint count manageable
+            step = max(1, len(coords) // 20)
+            sampled = coords[::step]
+            if sampled[-1] != coords[-1]:
+                sampled.append(coords[-1])
+            alternatives.append(sampled)
+
+        return alternatives if alternatives else _fetch_routes_osrm(request)
+
+    except Exception as exc:
+        log.warning("Google Maps routing failed (%s) — falling back to OSRM", exc)
+        return _fetch_routes_osrm(request)
+
+
+def _fetch_routes_osrm(request: RouteRequest) -> list[list[Coordinate]]:
+    """Fetch route alternatives from the free OSRM routing engine."""
+    import httpx
+
+    coords_str = (
+        f"{request.origin_lon},{request.origin_lat}"
+        f";{request.dest_lon},{request.dest_lat}"
+    )
+    url = f"{settings.osrm_base_url}/route/v1/driving/{coords_str}"
+
+    try:
+        resp = httpx.get(
+            url,
+            params={"overview": "full", "geometries": "geojson", "alternatives": "true"},
+            timeout=15,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        alternatives: list[list[Coordinate]] = []
+        for route in data.get("routes", []):
+            geojson_coords = route["geometry"]["coordinates"]
+            # Sample every Nth point
+            step = max(1, len(geojson_coords) // 20)
+            sampled = geojson_coords[::step]
+            coords = [Coordinate(latitude=c[1], longitude=c[0]) for c in sampled]
+            alternatives.append(coords)
+
+        return alternatives if alternatives else _straight_line_fallback(request)
+
+    except Exception as exc:
+        log.warning("OSRM routing failed (%s) — using straight-line fallback", exc)
+        return _straight_line_fallback(request)
+
+
+def _straight_line_fallback(request: RouteRequest) -> list[list[Coordinate]]:
+    """Last resort: straight line from origin to destination."""
     origin = Coordinate(latitude=request.origin_lat, longitude=request.origin_lon)
     destination = Coordinate(latitude=request.dest_lat, longitude=request.dest_lon)
-
-    # Include any caller-supplied intermediate waypoints
     midpoints = request.waypoints or []
-
     return [[origin, *midpoints, destination]]
 
 
@@ -205,7 +309,7 @@ def evaluate_routes(
             origin_lon=request.origin_lon,
             dest_lat=request.dest_lat,
             dest_lon=request.dest_lon,
-            provider="stub",
+            provider="google" if settings.google_maps_api_key else "osrm",
             recommended_route_index=recommended_idx,
             avg_aqi=scored_alternatives[recommended_idx].avg_aqi,
             recommendation=recommendation,

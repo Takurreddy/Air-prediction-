@@ -44,6 +44,12 @@ class Settings(BaseSettings):
     # ── Firebase (push notifications) ─────────────────────────────────────────
     firebase_credentials_path: str = "./firebase-credentials.json"
 
+    # ── SMTP (email alerts) ───────────────────────────────────────────────────
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+
     # ── ML artifact paths (resolved at runtime inside the container) ──────────
     ml_model_path: str = "ml/lstm_air_quality_model.keras"
     ml_scaler_path: str = "ml/time_scaler.pkl"
