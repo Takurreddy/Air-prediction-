@@ -3,12 +3,7 @@
 *.env
 firebase-credentials.json
 
-# ── ML artifacts (large binaries — store in DVC / Git LFS separately) ────────
-*.pkl
-*.keras
-*.h5
-lstm_air_quality_model.keras/
-time_scaler.pkl
+
 
 # ── Jupyter ───────────────────────────────────────────────────────────────────
 .ipynb_checkpoints/
