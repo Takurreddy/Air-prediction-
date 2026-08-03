@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     influx_token: str
     influx_org: str
     influx_bucket: str
+    influx_admin_password: str = ""
 
     # ── Redis (caching route AQI results) ─────────────────────────────────────
     redis_host: str = "redis"
@@ -30,6 +31,10 @@ class Settings(BaseSettings):
     jwt_secret_key: str
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
+    clerk_enabled: bool = False
+    clerk_jwks_url: str = "https://api.clerk.com/v1/jwks"
+    clerk_issuer: str = ""
+    clerk_audience: str = ""
 
     # ── External APIs ─────────────────────────────────────────────────────────
     openaq_api_key: str = ""          # OpenAQ — historical air quality data
