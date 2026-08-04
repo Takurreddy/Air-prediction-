@@ -26,12 +26,18 @@ function aqiColor(v) {
 }
 
 const CITIES = [
-  { name: "Delhi",     state: "Delhi",        lat: 28.6139, lng: 77.2090, defaultAqi: 284 },
-  { name: "Mumbai",    state: "Maharashtra",   lat: 19.0760, lng: 72.8777, defaultAqi: 82  },
-  { name: "Bengaluru", state: "Karnataka",     lat: 12.9716, lng: 77.5946, defaultAqi: 42  },
-  { name: "Chennai",   state: "Tamil Nadu",    lat: 13.0827, lng: 80.2707, defaultAqi: 68  },
-  { name: "Kolkata",   state: "West Bengal",   lat: 22.5726, lng: 88.3639, defaultAqi: 112 },
-  { name: "Hyderabad", state: "Telangana",     lat: 17.3850, lng: 78.4867, defaultAqi: 78  },
+  { name: "Delhi",         state: "Delhi",         lat: 28.6139, lng: 77.2090, defaultAqi: 284 },
+  { name: "Mumbai",        state: "Maharashtra",   lat: 19.0760, lng: 72.8777, defaultAqi: 82  },
+  { name: "Bengaluru",     state: "Karnataka",     lat: 12.9716, lng: 77.5946, defaultAqi: 42  },
+  { name: "Chennai",       state: "Tamil Nadu",    lat: 13.0827, lng: 80.2707, defaultAqi: 68  },
+  { name: "Kolkata",       state: "West Bengal",   lat: 22.5726, lng: 88.3639, defaultAqi: 112 },
+  { name: "Hyderabad",     state: "Telangana",     lat: 17.3850, lng: 78.4867, defaultAqi: 78  },
+  { name: "Ahmedabad",     state: "Gujarat",       lat: 23.0225, lng: 72.5714, defaultAqi: 95  },
+  { name: "Pune",          state: "Maharashtra",   lat: 18.5204, lng: 73.8567, defaultAqi: 64  },
+  { name: "Jaipur",        state: "Rajasthan",     lat: 26.9124, lng: 75.7873, defaultAqi: 135 },
+  { name: "Lucknow",       state: "Uttar Pradesh", lat: 26.8467, lng: 80.9462, defaultAqi: 170 },
+  { name: "Surat",         state: "Gujarat",       lat: 21.1702, lng: 72.8311, defaultAqi: 88  },
+  { name: "Visakhapatnam", state: "Andhra Pradesh",lat: 17.6868, lng: 83.2185, defaultAqi: 56  },
 ];
 
 const SearchIcon = () => (
@@ -59,13 +65,20 @@ const TargetIcon = () => (
 function IndiaMapMock({ cities, selectedCity, onSelect }) {
   /* approximate normalized positions inside a 520×500 viewBox */
   const positions = {
-    Delhi:     { x: 210, y: 110 },
-    Mumbai:    { x: 130, y: 270 },
-    Bengaluru: { x: 195, y: 360 },
-    Chennai:   { x: 250, y: 370 },
-    Kolkata:   { x: 340, y: 210 },
-    Hyderabad: { x: 220, y: 300 },
+    Delhi:         { x: 210, y: 110 },
+    Mumbai:        { x: 130, y: 270 },
+    Bengaluru:     { x: 195, y: 360 },
+    Chennai:       { x: 250, y: 370 },
+    Kolkata:       { x: 340, y: 210 },
+    Hyderabad:     { x: 220, y: 300 },
+    Ahmedabad:     { x: 125, y: 200 },
+    Pune:          { x: 145, y: 285 },
+    Jaipur:        { x: 180, y: 140 },
+    Lucknow:       { x: 260, y: 145 },
+    Surat:         { x: 128, y: 240 },
+    Visakhapatnam: { x: 285, y: 310 },
   };
+
 
   return (
     <svg viewBox="0 0 520 500" style={{ width: "100%", height: "100%" }}>

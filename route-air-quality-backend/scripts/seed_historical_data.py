@@ -22,13 +22,23 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 log = logging.getLogger("seed_historical_data")
 
 DEFAULT_STATIONS = [
-    {"station_id": "cpcb-delhi-ito",         "city": "Delhi",     "lat": 28.6289, "lon": 77.2410, "source": "cpcb"},
-    {"station_id": "cpcb-mumbai-bandra",     "city": "Mumbai",    "lat": 19.0596, "lon": 72.8295, "source": "cpcb"},
-    {"station_id": "cpcb-bangalore-peenya",  "city": "Bangalore", "lat": 13.0285, "lon": 77.5197, "source": "cpcb"},
-    {"station_id": "cpcb-hyderabad-sanath",  "city": "Hyderabad", "lat": 17.4568, "lon": 78.4439, "source": "cpcb"},
-    {"station_id": "cpcb-chennai-alandur",   "city": "Chennai",   "lat": 13.0012, "lon": 80.2015, "source": "cpcb"},
-    {"station_id": "cpcb-kolkata-victoria",  "city": "Kolkata",   "lat": 22.5448, "lon": 88.3426, "source": "cpcb"},
+    {"station_id": "cpcb-delhi-ito",            "city": "Delhi",         "lat": 28.6289, "lon": 77.2410, "source": "cpcb"},
+    {"station_id": "cpcb-delhi-rkpuram",        "city": "Delhi",         "lat": 28.5632, "lon": 77.1869, "source": "cpcb"},
+    {"station_id": "cpcb-mumbai-bandra",        "city": "Mumbai",        "lat": 19.0596, "lon": 72.8295, "source": "cpcb"},
+    {"station_id": "cpcb-mumbai-worli",         "city": "Mumbai",        "lat": 19.0176, "lon": 72.8172, "source": "cpcb"},
+    {"station_id": "cpcb-bangalore-peenya",     "city": "Bengaluru",     "lat": 13.0285, "lon": 77.5197, "source": "cpcb"},
+    {"station_id": "cpcb-bangalore-bapuji",     "city": "Bengaluru",     "lat": 12.9580, "lon": 77.5380, "source": "cpcb"},
+    {"station_id": "cpcb-hyderabad-sanath",     "city": "Hyderabad",     "lat": 17.4568, "lon": 78.4439, "source": "cpcb"},
+    {"station_id": "cpcb-chennai-alandur",      "city": "Chennai",       "lat": 13.0012, "lon": 80.2015, "source": "cpcb"},
+    {"station_id": "cpcb-kolkata-victoria",     "city": "Kolkata",       "lat": 22.5448, "lon": 88.3426, "source": "cpcb"},
+    {"station_id": "cpcb-ahmedabad-maninagar",  "city": "Ahmedabad",     "lat": 23.0010, "lon": 72.6010, "source": "cpcb"},
+    {"station_id": "cpcb-pune-karvenagar",      "city": "Pune",          "lat": 18.4900, "lon": 73.8200, "source": "cpcb"},
+    {"station_id": "cpcb-jaipur-mansarovar",    "city": "Jaipur",        "lat": 26.8600, "lon": 75.7600, "source": "cpcb"},
+    {"station_id": "cpcb-lucknow-talkatora",    "city": "Lucknow",       "lat": 26.8300, "lon": 80.9000, "source": "cpcb"},
+    {"station_id": "cpcb-surat-limbayat",       "city": "Surat",         "lat": 21.1800, "lon": 72.8500, "source": "cpcb"},
+    {"station_id": "cpcb-visakhapatnam-gaju",   "city": "Visakhapatnam", "lat": 17.6900, "lon": 83.2000, "source": "cpcb"},
 ]
+
 
 
 def seed_postgres_stations() -> list[Station]:

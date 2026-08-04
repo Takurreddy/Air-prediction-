@@ -140,7 +140,7 @@ body {
 .nav-guest__icon svg { width: 13px; height: 13px; color: var(--text-muted); }
 
 /* ══════════════════════════════════════════
-   GLOBAL ALERT BANNER
+   GLOBAL ALERT BANNER & LOCATION PROMPT
    ══════════════════════════════════════════ */
 .global-alert-bar {
   display: flex; align-items: center; gap: 10px;
@@ -154,6 +154,27 @@ body {
   color: var(--text-muted); cursor: pointer; font-size: 17px; line-height: 1; padding: 0;
 }
 .global-alert-bar__close:hover { color: var(--text-main); }
+
+.location-prompt {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 10px 28px;
+  background: var(--bg-surface); border-bottom: 1px solid var(--border);
+  box-shadow: 0 4px 14px rgba(0,0,0,.25); position: relative; z-index: 99;
+}
+.location-prompt__content { display: flex; align-items: center; gap: 12px; }
+.location-prompt__icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: var(--teal-dim); border: 1px solid rgba(13,148,136,.3);
+  display: grid; place-items: center; color: var(--teal-lt); flex-shrink: 0;
+}
+.location-prompt__icon svg { width: 18px; height: 18px; }
+.location-prompt__actions { display: flex; align-items: center; gap: 10px; }
+.location-prompt__close {
+  background: none; border: none; color: var(--text-muted);
+  font-size: 16px; cursor: pointer; padding: 2px 6px; line-height: 1;
+}
+.location-prompt__close:hover { color: var(--text-main); }
+
 
 /* ══════════════════════════════════════════
    SHARED PANELS & CONTROLS

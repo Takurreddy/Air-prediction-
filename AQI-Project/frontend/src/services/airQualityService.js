@@ -42,3 +42,13 @@ export async function createAlert(payload) {
 export async function deleteAlert(alertId) {
   await apiClient.delete(`/air-quality/alerts/${alertId}`, { requiresAuth: true });
 }
+
+export async function listPredictionHistory(params) {
+  const response = await apiClient.get("/prediction-history", { params, requiresAuth: true });
+  return response.data;
+}
+
+export async function storePredictionHistory(payload) {
+  const response = await apiClient.post("/prediction-history", payload, { requiresAuth: true });
+  return response.data;
+}

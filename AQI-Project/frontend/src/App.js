@@ -46,7 +46,7 @@ function LocationPrompt({ onAllow, onClose }) {
     <div className="location-prompt">
       <div className="location-prompt__content">
         <div className="location-prompt__icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 20, height: 20 }}>
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" />
           </svg>
         </div>
