@@ -1,3 +1,4 @@
+from urllib.parse import quote_plus
 from pydantic_settings import BaseSettings
 
 
@@ -69,15 +70,21 @@ class Settings(BaseSettings):
 
     @property
     def postgres_url(self) -> str:
+        # quote_plus encodes special characters (@, #, %, etc.) in credentials
+        user = quote_plus(self.postgres_user)
+        pwd  = quote_plus(self.postgres_password)
         return (
-            f"postgresql://{self.postgres_user}:{self.postgres_password}"
+            f"postgresql://{user}:{pwd}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
 
     @property
     def postgres_url_async(self) -> str:
+        # quote_plus encodes special characters (@, #, %, etc.) in credentials
+        user = quote_plus(self.postgres_user)
+        pwd  = quote_plus(self.postgres_password)
         return (
-            f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
+            f"postgresql+asyncpg://{user}:{pwd}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
 

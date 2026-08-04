@@ -1,207 +1,205 @@
-import React, { useState, useRef } from "react";
-import {
-  GoogleMap,
-  Marker,
-  Autocomplete,
-  LoadScript,
-} from "@react-google-maps/api";
+import { useState, useRef, useEffect } from "react";
 import { evaluateRoutes } from "../services/airQualityService";
+import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 
-const libraries = ["places"];
+// Fix default Leaflet icon paths
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
+  iconUrl: require("leaflet/dist/images/marker-icon.png"),
+  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
+});
 
-const mapContainerStyle = {
-  width: "100%",
-  height: "500px",
-};
+const DEFAULT_CENTER = [20.5937, 78.9629]; // centre of India
 
-const center = {
-  lat: 17.6868,
-  lng: 83.2185,
-};
+const CITIES = [
+  { name: "Delhi", lat: 28.6139, lng: 77.2090 },
+  { name: "Mumbai", lat: 19.0760, lng: 72.8777 },
+  { name: "Bengaluru", lat: 12.9716, lng: 77.5946 },
+  { name: "Chennai", lat: 13.0827, lng: 80.2707 },
+  { name: "Kolkata", lat: 22.5726, lng: 88.3639 },
+  { name: "Hyderabad", lat: 17.3850, lng: 78.4867 },
+  { name: "Ahmedabad", lat: 23.0225, lng: 72.5714 },
+  { name: "Pune", lat: 18.5204, lng: 73.8567 },
+  { name: "Jaipur", lat: 26.9124, lng: 75.7873 },
+  { name: "Lucknow", lat: 26.8467, lng: 80.9462 },
+  { name: "Surat", lat: 21.1702, lng: 72.8311 },
+  { name: "Visakhapatnam", lat: 17.6868, lng: 83.2185 },
+];
 
-function RoutePlanner() {
-  const [start, setStart] = useState(null);
-  const [destination, setDestination] = useState(null);
+const RouteIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:13,height:13 }}>
+    <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="M13 13l6 6"/>
+  </svg>
+);
 
-  const [distance, setDistance] = useState("");
-  const [duration, setDuration] = useState("");
-  const [score, setScore] = useState("");
-  const [recommendation, setRecommendation] = useState("");
-  const [routeError, setRouteError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const startRef = useRef(null);
-  const destinationRef = useRef(null);
-  const mapRef = useRef(null);
-
-  const onMapLoad = (map) => {
-    mapRef.current = map;
-  };
-
-  const findRoute = async () => {
-    if (!start || !destination) {
-      setRouteError("Please select both starting location and destination.");
-      return;
+// Helper component to auto-fit bounds when markers change
+function FitBounds({ start, dest }) {
+  const map = useMap();
+  useEffect(() => {
+    if (start && dest) {
+      const bounds = L.latLngBounds([start.lat, start.lng], [dest.lat, dest.lng]);
+      map.fitBounds(bounds, { padding: [50, 50] });
+    } else if (start) {
+      map.setView([start.lat, start.lng], 8);
+    } else if (dest) {
+      map.setView([dest.lat, dest.lng], 8);
     }
-    try {
-      setIsSubmitting(true);
-      setRouteError("");
-      const result = await evaluateRoutes({
-        origin_lat: start.lat,
-        origin_lon: start.lng,
-        dest_lat: destination.lat,
-        dest_lon: destination.lng,
-        alternatives: 3,
-        use_predictions: true,
-      });
-
-      const recommended = result.alternatives?.[result.recommended_index];
-      const distanceKm =
-        recommended?.distance_m != null ? (recommended.distance_m / 1000).toFixed(2) : "";
-      const durationMin =
-        recommended?.duration_s != null ? Math.round(recommended.duration_s / 60).toString() : "";
-      const avgAqi = recommended?.avg_aqi != null ? Math.max(0, 100 - recommended.avg_aqi).toFixed(0) : "";
-
-      setDistance(distanceKm);
-      setDuration(durationMin);
-      setScore(avgAqi);
-      setRecommendation(result.recommendation || "Route evaluated.");
-
-      if (mapRef.current) {
-        const bounds = new window.google.maps.LatLngBounds();
-        bounds.extend(start);
-        bounds.extend(destination);
-        mapRef.current.fitBounds(bounds);
-      }
-    } catch (error) {
-      setRouteError(error?.response?.data?.detail || "Failed to evaluate route.");
-      setDistance("");
-      setDuration("");
-      setScore("");
-      setRecommendation("");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const clearRoute = () => {
-    setStart(null);
-    setDestination(null);
-    setDistance("");
-    setDuration("");
-    setScore("");
-    setRecommendation("");
-    setRouteError("");
-  };
-
-  return (
-    <LoadScript
-      googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
-      libraries={libraries}
-    >
-      <div className="dashboard">
-        <header className="page-header">
-          <h1>AI Route Planner</h1>
-          <p>Evaluate routes by distance, travel time, and predicted pollution exposure.</p>
-        </header>
-
-        <section className="panel">
-          <h2>Find Cleaner Route</h2>
-          <div className="inline-form-column">
-
-          <Autocomplete
-            onLoad={(autocomplete) => (startRef.current = autocomplete)}
-            onPlaceChanged={() => {
-              const place = startRef.current.getPlace();
-
-              if (!place.geometry) return;
-
-              setStart({
-                lat: place.geometry.location.lat(),
-                lng: place.geometry.location.lng(),
-              });
-            }}
-          >
-            <input
-              className="route-input"
-              type="text"
-              placeholder="Starting Location"
-            />
-          </Autocomplete>
-
-          <Autocomplete
-            onLoad={(autocomplete) =>
-              (destinationRef.current = autocomplete)
-            }
-            onPlaceChanged={() => {
-              const place = destinationRef.current.getPlace();
-
-              if (!place.geometry) return;
-
-              setDestination({
-                lat: place.geometry.location.lat(),
-                lng: place.geometry.location.lng(),
-              });
-            }}
-          >
-            <input
-              className="route-input"
-              type="text"
-              placeholder="Destination"
-            />
-          </Autocomplete>
-          <div className="inline-actions">
-            <button className="route-btn" onClick={findRoute} disabled={isSubmitting}>
-              {isSubmitting ? "Checking Route..." : "Find Route"}
-            </button>
-            <button className="route-btn route-btn-secondary" onClick={clearRoute} type="button">
-              Clear
-            </button>
-          </div>
-          </div>
-        </section>
-
-        {(distance || duration) && (
-          <section className="health-tip panel">
-            <h2>Route Information</h2>
-            <div className="stats-grid">
-              <p>
-                <strong>Distance</strong>
-                <span>{distance} km</span>
-              </p>
-              <p>
-                <strong>Estimated Time</strong>
-                <span>{duration} mins</span>
-              </p>
-              <p>
-                <strong>Cleaner Route Score</strong>
-                <span>{score || "N/A"}%</span>
-              </p>
-              <p>
-                <strong>Status</strong>
-                <span>{recommendation || "Recommended Route"}</span>
-              </p>
-            </div>
-          </section>
-        )}
-        {routeError ? (
-          <p className="status-message status-error">{routeError}</p>
-        ) : null}
-        <section className="panel map-panel">
-          <GoogleMap
-            mapContainerStyle={mapContainerStyle}
-            zoom={12}
-            center={center}
-            onLoad={onMapLoad}
-          >
-            {start && <Marker position={start} />}
-            {destination && <Marker position={destination} />}
-          </GoogleMap>
-        </section>
-
-      </div>
-    </LoadScript>
-  );
+  }, [start, dest, map]);
+  return null;
 }
 
-export default RoutePlanner;
+export default function RoutePlanner() {
+  const [startCityName, setStartCityName] = useState("");
+  const [destCityName,  setDestCityName]  = useState("");
+  const [departAt,  setDepartAt]    = useState("09:00");
+  const [start,     setStart]       = useState(null);
+  const [dest,      setDest]        = useState(null);
+  const [result,    setResult]      = useState(null);
+  const [routeError, setRouteError] = useState("");
+  const [loading,   setLoading]     = useState(false);
+
+  function handleStartChange(e) {
+    const name = e.target.value;
+    setStartCityName(name);
+    const c = CITIES.find(city => city.name === name);
+    setStart(c ? { lat: c.lat, lng: c.lng } : null);
+  }
+
+  function handleDestChange(e) {
+    const name = e.target.value;
+    setDestCityName(name);
+    const c = CITIES.find(city => city.name === name);
+    setDest(c ? { lat: c.lat, lng: c.lng } : null);
+  }
+
+  async function findRoute() {
+    if (!start || !dest) { setRouteError("Select both source and destination."); return; }
+    try {
+      setLoading(true); setRouteError("");
+      const res = await evaluateRoutes({
+        origin_lat: start.lat, origin_lon: start.lng,
+        dest_lat:   dest.lat,  dest_lon:   dest.lng,
+        alternatives: 3, use_predictions: true,
+      });
+      const rec  = res.alternatives?.[res.recommended_index];
+      setResult({
+        distance:       rec?.distance_m != null ? (rec.distance_m / 1000).toFixed(1) : "—",
+        duration:       rec?.duration_s != null ? Math.round(rec.duration_s / 60)     : "—",
+        score:          rec?.avg_aqi    != null ? Math.max(0, 100 - rec.avg_aqi).toFixed(0) : "—",
+        recommendation: res.recommendation || "Recommended route selected.",
+        avgAqi:         rec?.avg_aqi?.toFixed(0) ?? "—",
+      });
+    } catch (e) {
+      setRouteError(e?.response?.data?.detail || "Route evaluation failed.");
+      setResult(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function clearAll() {
+    setStart(null); setDest(null); setStartCityName(""); setDestCityName("");
+    setResult(null); setRouteError("");
+  }
+
+  return (
+    <div className="route-page">
+      {/* ── planner panel ── */}
+      <div className="route-panel">
+        <div className="route-panel__header">
+          <div className="route-panel__label"><RouteIcon /> Route Planner &amp; Exposure</div>
+          <div className="route-panel__title">Plan Route</div>
+        </div>
+
+        <div className="route-inputs">
+          {/* source */}
+          <div className="route-col">
+            <label>SOURCE</label>
+            <select
+              className="ai-select"
+              value={startCityName}
+              onChange={handleStartChange}
+            >
+              <option value="">Select city…</option>
+              {CITIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+            </select>
+          </div>
+
+          <span className="route-inputs__arrow">→</span>
+
+          {/* destination */}
+          <div className="route-col">
+            <label>DESTINATION</label>
+            <select
+              className="ai-select"
+              value={destCityName}
+              onChange={handleDestChange}
+            >
+              <option value="">Select city…</option>
+              {CITIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+            </select>
+          </div>
+
+          {/* depart at */}
+          <div className="route-time">
+            <label>DEPART AT</label>
+            <input type="time" value={departAt} onChange={e => setDepartAt(e.target.value)} />
+          </div>
+        </div>
+
+        <div className="route-actions">
+          <button className="ai-btn" type="button" onClick={findRoute} disabled={loading}>
+            <RouteIcon /> {loading ? "Evaluating…" : "Get Route AQI Forecast"}
+          </button>
+          <button className="ai-btn ai-btn--ghost" type="button" onClick={clearAll}>
+            Clear
+          </button>
+        </div>
+
+        {routeError && <p className="status-message status-error" style={{ marginTop: 10 }}>{routeError}</p>}
+      </div>
+
+      {/* ── result ── */}
+      {result && (
+        <div className="route-result">
+          <div style={{ fontWeight: 700, marginBottom: 14 }}>Route Summary</div>
+          <div className="route-result__grid">
+            <div className="route-result__stat">
+              <div className="route-result__stat-label">Distance</div>
+              <div className="route-result__stat-val">{result.distance} km</div>
+            </div>
+            <div className="route-result__stat">
+              <div className="route-result__stat-label">Travel Time</div>
+              <div className="route-result__stat-val">{result.duration} min</div>
+            </div>
+            <div className="route-result__stat">
+              <div className="route-result__stat-label">Avg AQI Exposure</div>
+              <div className="route-result__stat-val">{result.avgAqi}</div>
+            </div>
+            <div className="route-result__stat">
+              <div className="route-result__stat-label">Clean-air Score</div>
+              <div className="route-result__stat-val">{result.score}%</div>
+            </div>
+          </div>
+          <p style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)" }}>{result.recommendation}</p>
+        </div>
+      )}
+
+      {/* ── map ── */}
+      <div className="map-container" style={{ height: "420px", borderRadius: "12px", overflow: "hidden" }}>
+        <MapContainer center={DEFAULT_CENTER} zoom={5} style={{ height: "100%", width: "100%" }} scrollWheelZoom={true}>
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          />
+          <FitBounds start={start} dest={dest} />
+          {start && <Marker position={[start.lat, start.lng]} />}
+          {dest && <Marker position={[dest.lat, dest.lng]} />}
+        </MapContainer>
+      </div>
+    </div>
+  );
+}

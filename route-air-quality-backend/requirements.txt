@@ -16,6 +16,7 @@ pydantic-settings==2.5.2
 # ── Auth ──────────────────────────────────────────────────────────────────────
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+bcrypt==4.2.0
 
 # ── Time-series DB ────────────────────────────────────────────────────────────
 influxdb-client==1.45.0

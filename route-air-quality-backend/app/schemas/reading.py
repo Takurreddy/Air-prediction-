@@ -42,9 +42,11 @@ class AlertCreate(BaseModel):
     notify_push: bool = False
 
 
+import uuid
+
 class AlertOut(BaseModel):
     id: int
-    user_id: int
+    user_id: uuid.UUID
     station_id: str
     threshold_aqi: float
     notify_email: bool

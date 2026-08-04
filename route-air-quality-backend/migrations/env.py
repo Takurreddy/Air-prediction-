@@ -1,13 +1,18 @@
 """
 Alembic migration environment.
-
-Supports both offline (--sql) and online (live DB connection) modes.
-The database URL is pulled from app.core.config.settings so there is a
-single source of truth for all connection strings.
 """
 from __future__ import annotations
 
 import logging
+import sys
+import os
+
+# Ensure the project root (/app) is on sys.path so `app.*` imports work
+# whether alembic is invoked from inside or outside the container.
+_project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 from logging.config import fileConfig
 
 from alembic import context
@@ -32,9 +37,6 @@ from app.core.config import settings
 # ── Alembic config ────────────────────────────────────────────────────────────
 config = context.config
 
-# Inject the runtime DB URL so alembic.ini's placeholder is never used
-config.set_main_option("sqlalchemy.url", settings.postgres_url)
-
 # Wire up Python logging from alembic.ini
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
@@ -50,7 +52,7 @@ def run_migrations_offline() -> None:
     Emit SQL to stdout without opening a DB connection.
     Useful for reviewing migrations or deploying via CI.
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = settings.postgres_url
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -68,9 +70,9 @@ def run_migrations_online() -> None:
     """
     Open a real DB connection and apply pending migrations.
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
+    from sqlalchemy import create_engine
+    connectable = create_engine(
+        settings.postgres_url,
         poolclass=pool.NullPool,
     )
     with connectable.connect() as connection:

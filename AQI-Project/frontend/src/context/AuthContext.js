@@ -1,51 +1,78 @@
-import { createContext, useContext, useEffect, useMemo } from "react";
-import { useAuth as useClerkAuth, useUser } from "@clerk/clerk-react";
-import runtimeConfig from "../config/runtimeConfig";
-import { setClerkTokenProvider } from "../services/apiClient";
+/**
+ * AuthContext — JWT-based auth backed by the FastAPI backend.
+ * No Clerk dependency. Token stored in localStorage.
+ */
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
 const AuthContext = createContext(null);
 
-function ClerkAuthProvider({ children }) {
-  const { isLoaded, isSignedIn, getToken, signOut } = useClerkAuth();
-  const { user } = useUser();
-
-  useEffect(() => {
-    setClerkTokenProvider(() =>
-      getToken({
-        template: runtimeConfig.clerkJwtTemplate || undefined,
-      })
-    );
-
-    return () => {
-      setClerkTokenProvider(null);
-    };
-  }, [getToken]);
-
-  const value = useMemo(
-    () => ({
-      user: user
-        ? {
-            id: user.id,
-            email: user.primaryEmailAddress?.emailAddress || "",
-            full_name: user.fullName || user.firstName || null,
-          }
-        : null,
-      isAuthenticated: Boolean(isSignedIn),
-      isLoading: !isLoaded,
-      logout: () => signOut(),
-      getAuthToken: async () =>
-        getToken({
-          template: runtimeConfig.clerkJwtTemplate || undefined,
-        }),
-    }),
-    [getToken, isLoaded, isSignedIn, signOut, user]
-  );
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+const TOKEN_KEY = "aq_access_token";
+const USER_KEY  = "aq_user";
 
 export function AuthProvider({ children }) {
-  return <ClerkAuthProvider>{children}</ClerkAuthProvider>;
+  const [token,     setToken]     = useState(() => localStorage.getItem(TOKEN_KEY) || null);
+  const [user,      setUser]      = useState(() => {
+    try {
+      const raw = localStorage.getItem(USER_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [isLoading, setIsLoading] = useState(false);
+
+  /* Persist token + user to localStorage whenever they change */
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+    } else {
+      localStorage.removeItem(TOKEN_KEY);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(USER_KEY);
+    }
+  }, [user]);
+
+  /**
+   * Called right after a successful /auth/login or /auth/signup response.
+   * @param {string} accessToken  — JWT from the backend
+   * @param {object} userData     — { email, full_name } (partial is fine)
+   */
+  const login = useCallback((accessToken, userData = {}) => {
+    setToken(accessToken);
+    setUser(userData);
+  }, []);
+
+  /** Clear session */
+  const logout = useCallback(() => {
+    setToken(null);
+    setUser(null);
+  }, []);
+
+  /**
+   * Returns the stored JWT — used by apiClient for authenticated requests.
+   */
+  const getAuthToken = useCallback(async () => token, [token]);
+
+  const value = useMemo(() => ({
+    user,
+    isAuthenticated: Boolean(token),
+    isLoading,
+    login,
+    logout,
+    getAuthToken,
+  }), [user, token, isLoading, login, logout, getAuthToken]);
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
