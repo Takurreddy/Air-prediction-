@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import runtimeConfig from "../config/runtimeConfig";
 import {
   fetchAirQualityByCity,
@@ -144,6 +145,7 @@ function SocialShare({ station, aqi }) {
 }
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery]       = useState("");
   const [selectedCity, setSelectedCity]     = useState(CITIES[0].name);
   const [station, setStation]               = useState(null);
@@ -234,28 +236,28 @@ export default function Dashboard() {
           <input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search Indian cities (e.g. Delhi, Mumbai, Bengaluru)..."
+            placeholder={t('dashboard.search')}
           />
         </div>
         <div className="aq-cities-badge">
-          <span>Cities:</span>
-          <strong>{availableCities.length || CITIES.length} Active</strong>
+          <span>{t('dashboard.cities')}</span>
+          <strong>{availableCities.length || CITIES.length} {t('dashboard.active')}</strong>
         </div>
       </div>
 
       {/* ── sidebar ── */}
       <aside className="aq-sidebar">
-        <h1 className="aq-page-title">Air Quality <span>Index</span></h1>
+        <h1 className="aq-page-title">{t('dashboard.title')}</h1>
         <div className="aq-meta">
           <CalIcon />
-          {dateStr} · Local time
+          {dateStr} · {t('dashboard.localTime')}
           &nbsp;·&nbsp; Local → 🇮🇳 IND
         </div>
 
         {/* directory */}
         <div className="aq-dir">
-          <div className="section-label"><PinIcon /> Interactive Directory</div>
-          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>Explore City Coordinates</div>
+          <div className="section-label"><PinIcon /> {t('dashboard.interactiveDir')}</div>
+          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>{t('dashboard.exploreCoords')}</div>
           {filteredCities.map(city => {
             const aqi = cityAqiMap[city.name] ?? city.defaultAqi;
             return (
@@ -270,7 +272,7 @@ export default function Dashboard() {
                     <span style={{ color: "var(--text-muted)", fontWeight: 400 }}> ({city.state})</span>
                   </div>
                   <div className="aq-dir__coords">
-                    Lat: {city.lat} | Lng: {city.lng}
+                    {t('dashboard.lat')}: {city.lat} | {t('dashboard.lng')}: {city.lng}
                   </div>
                 </div>
                 <div className="aq-dir__aqi" style={{ color: aqiColor(aqi) }}>
@@ -298,8 +300,8 @@ export default function Dashboard() {
                   <span className={`aqi-dot aqi-dot--${aqiMeta.dot}`} /> {aqiMeta.label.toUpperCase()}
                 </span>
                 <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
-                  <div>Dominant &nbsp; <strong style={{ color: "var(--text-main)" }}>{station.pm25 != null ? "PM2.5" : "PM10"}</strong></div>
-                  <div style={{ marginTop: 4 }}>Temp &nbsp; <strong style={{ color: "var(--text-main)" }}>{station.temperature ?? "—"}°C</strong></div>
+                  <div>{t('dashboard.dominant')} &nbsp; <strong style={{ color: "var(--text-main)" }}>{station.pm25 != null ? "PM2.5" : "PM10"}</strong></div>
+                  <div style={{ marginTop: 4 }}>{t('dashboard.temp')} &nbsp; <strong style={{ color: "var(--text-main)" }}>{station.temperature ?? "—"}°C</strong></div>
                 </div>
               </div>
             </div>
@@ -315,15 +317,15 @@ export default function Dashboard() {
         <div className="aq-map__toolbar">
           <div className="aq-map__tabs">
             <button className={`aq-map__tab${mapTab === "iq" ? " aq-map__tab--active" : ""}`} onClick={() => setMapTab("iq")}>
-              IQ AIR MAP
+              {t('dashboard.iqMap')}
             </button>
             <button className={`aq-map__tab${mapTab === "hybrid" ? " aq-map__tab--active" : ""}`} onClick={() => setMapTab("hybrid")}>
-              HYBRID VIEW
+              {t('dashboard.hybrid')}
             </button>
           </div>
 
           <button className="aq-map__recenter" onClick={() => setShowPopup(true)}>
-            <TargetIcon style={{ width: 14, height: 14 }} /> RECENTER
+            <TargetIcon style={{ width: 14, height: 14 }} /> {t('dashboard.recenter')}
           </button>
         </div>
 

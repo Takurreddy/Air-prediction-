@@ -10,7 +10,11 @@ from __future__ import annotations
 import logging
 import random
 import sys
+import os
 from datetime import datetime, timedelta, timezone
+
+# Ensure /app is on the path so `app.*` imports resolve when running this script directly
+sys.path.insert(0, "/app")
 
 from app.core.config import settings
 from app.database import influx as influx_db

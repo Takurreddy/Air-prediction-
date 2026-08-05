@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 import "./LandingPage.css";
 
@@ -41,6 +42,7 @@ function ArchStep({ tag, label, desc, arrow }) {
 }
 
 export default function LandingPage() {
+  const { t } = useTranslation();
   /* subtle parallax on hero visual */
   const heroVisualRef = useRef(null);
   useEffect(() => {
@@ -64,33 +66,31 @@ export default function LandingPage() {
           </span>
 
           <h1 className="lp-hero__headline">
-            Know the air<br />
-            <span className="lp-hero__accent">before you breathe it.</span>
+            {t('landing.knowAir').split(' ').slice(0, -3).join(' ')}<br />
+            <span className="lp-hero__accent">{t('landing.knowAir').split(' ').slice(-3).join(' ')}</span>
           </h1>
 
           <p className="lp-hero__sub">
-            AirAware fuses sensor networks, weather data and machine learning to
-            forecast pollution block-by-block — then reroutes you around it and
-            warns you before exposure, not after.
+            {t('landing.fuses')}
           </p>
 
           <div className="lp-hero__ctas">
-            <NavLink to="/auth" className="lp-btn lp-btn--primary">Request a demo →</NavLink>
-            <a href="#how-it-works" className="lp-btn lp-btn--ghost">See how it works</a>
+            <NavLink to="/auth" className="lp-btn lp-btn--primary">{t('landing.reqDemo')} →</NavLink>
+            <a href="#how-it-works" className="lp-btn lp-btn--ghost">{t('landing.seeHow')}</a>
           </div>
 
           <div className="lp-hero__stats">
             <div className="lp-stat">
               <strong>72hr</strong>
-              <span>forecast horizon</span>
+              <span>{t('landing.forecast72')}</span>
             </div>
             <div className="lp-stat">
               <strong>±8%</strong>
-              <span>PM2.5 model error</span>
+              <span>{t('landing.err8')}</span>
             </div>
             <div className="lp-stat">
               <strong>150m</strong>
-              <span>grid resolution</span>
+              <span>{t('landing.res150')}</span>
             </div>
           </div>
         </div>
@@ -137,7 +137,7 @@ export default function LandingPage() {
       {/* ══════════════════ HOW IT WORKS ══════════════════ */}
       <section className="lp-section lp-how" id="how-it-works">
         <div className="lp-section__header">
-          <h2>Sense → Predict → Protect</h2>
+          <h2>{t('landing.sense')}</h2>
           <p>Three stages, running continuously</p>
           <span className="lp-section__sub">
             Each stage feeds the next in a live loop — the model never stops
@@ -151,11 +151,9 @@ export default function LandingPage() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
             </div>
             <span className="lp-how__num">01 / Sense</span>
-            <h3>Ingest ground truth</h3>
+            <h3>{t("landing.step1Title")}</h3>
             <p>
-              Low-cost sensor grids, government monitoring stations, satellite AOD
-              readings and live traffic density are pulled in every few minutes and
-              cross-calibrated against each other.
+              {t("landing.step1Desc")}
             </p>
           </div>
 
@@ -164,11 +162,9 @@ export default function LandingPage() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M3 3l18 18M9 9a3 3 0 105.12 2.12"/><path d="M17.94 17.94A8 8 0 014.06 4.06"/></svg>
             </div>
             <span className="lp-how__num">02 / Predict</span>
-            <h3>Forecast the next 72 hours</h3>
+            <h3>{t("landing.step2Title")}</h3>
             <p>
-              A spatiotemporal model — trained on meteorology, emissions and
-              historical pollution drift — projects PM2.5, PM10, NO₂ and ozone at
-              150m resolution across the city.
+              {t("landing.step2Desc")}
             </p>
           </div>
 
@@ -177,11 +173,9 @@ export default function LandingPage() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
             <span className="lp-how__num">03 / Protect</span>
-            <h3>Alert and reroute</h3>
+            <h3>{t("landing.step3Title")}</h3>
             <p>
-              Alerts are scored against each user's own sensitivity profile, and
-              the routing engine scores every path option by cumulative exposure,
-              not just distance or time.
+              {t("landing.step3Desc")}
             </p>
           </div>
         </div>
@@ -193,16 +187,14 @@ export default function LandingPage() {
         {/* alerts block */}
         <div className="lp-feature-row">
           <div className="lp-feature-row__text">
-            <h2>Alerts tuned to your body, not the city average</h2>
+            <h2>{t("landing.alertsTuned")}</h2>
             <p>
-              A citywide AQI number means little if you have asthma, are pregnant,
-              or run outdoors at 6am. AirAware weighs forecasts against a personal
-              sensitivity profile before it ever pings you.
+              {t("landing.alertsTunedDesc")}
             </p>
             <ul className="lp-feature-list">
-              <li>Threshold tuned per condition — asthma, COPD, cardiovascular, pregnancy, general</li>
-              <li>Pollutant-specific triggers, not just a single blended index</li>
-              <li>Quiet hours and activity-aware timing, so alerts land before exposure, not during sleep</li>
+              <li>{t("landing.li1")}</li>
+              <li>{t("landing.li2")}</li>
+              <li>{t("landing.li3")}</li>
             </ul>
           </div>
 
@@ -210,16 +202,16 @@ export default function LandingPage() {
             <AlertPill
               icon="🟠"
               color="orange"
-              title="Ozone rising near your evening run route"
-              body="O₃ forecast to hit 118 AQI by 5:30pm along your usual loop. Suggested window: before 3pm."
-              time="2 MIN AGO"
+              title={t("landing.a1title")}
+              body={t("landing.a1body")}
+              time={t("landing.a1time")}
             />
             <AlertPill
               icon="🔴"
               color="red"
-              title="PM2.5 spike expected — asthma profile"
-              body="Construction-linked dust event forecast for your commute corridor, 8–10am tomorrow."
-              time="14 MIN AGO"
+              title={t("landing.a2title")}
+              body={t("landing.a2body")}
+              time={t("landing.a2time")}
             />
           </div>
         </div>
@@ -227,16 +219,14 @@ export default function LandingPage() {
         {/* routing block */}
         <div className="lp-feature-row lp-feature-row--reverse">
           <div className="lp-feature-row__text">
-            <h2>Routes optimized for what you breathe, not just how fast you get there</h2>
+            <h2>{t("landing.routesOpt")}</h2>
             <p>
-              The routing engine treats pollution exposure as a real cost function
-              alongside time and distance — so you can choose the trade-off that
-              fits you.
+              {t("landing.routesOptDesc")}
             </p>
             <ul className="lp-feature-list">
-              <li>Every candidate route scored on cumulative pollutant exposure, door to door</li>
-              <li>Walking, cycling and driving modes weighted differently — exposure per minute varies by mode</li>
-              <li>Live re-routing when a forecast shifts mid-trip</li>
+              <li>{t("landing.li4")}</li>
+              <li>{t("landing.li5")}</li>
+              <li>{t("landing.li6")}</li>
             </ul>
           </div>
 
@@ -262,10 +252,10 @@ export default function LandingPage() {
       <div className="lp-stats-bar">
         <div className="lp-stats-bar__inner">
           {[
-            { value: "1.2M+", label: "sensor readings processed daily" },
-            { value: "150m", label: "forecast grid resolution" },
-            { value: "72hr", label: "rolling prediction horizon" },
-            { value: "±8%", label: "mean absolute error, PM2.5" },
+            { value: "1.2M+", label: t("landing.statsSensor") },
+            { value: "150m", label: t("landing.statsGrid") },
+            { value: "72hr", label: t("landing.statsRolling") },
+            { value: "±8%", label: t("landing.statsError") },
           ].map((s) => (
             <div key={s.label} className="lp-stats-bar__item">
               <strong>{s.value}</strong>
@@ -278,33 +268,32 @@ export default function LandingPage() {
       {/* ══════════════════ ARCHITECTURE ══════════════════ */}
       <section className="lp-section lp-arch" id="architecture">
         <div className="lp-section__header">
-          <h2>Under the hood</h2>
-          <p>A pipeline built for a moving target</p>
+          <h2>{t("landing.underHood")}</h2>
+          <p>{t("landing.pipeline")}</p>
           <span className="lp-section__sub">
-            Air quality doesn't sit still — the system is built as a continuous
-            loop, not a one-off report.
+            {t("landing.airDoesnt")}
           </span>
         </div>
 
         <div className="lp-arch__pipeline">
-          <ArchStep tag="INPUT"   label="Sensor & satellite feed"   desc="Ground stations, low-cost IoT nodes, AOD satellite data, weather & traffic APIs." arrow />
-          <ArchStep tag="PROCESS" label="Calibration layer"         desc="Cross-sensor bias correction and spatial interpolation across the city grid." arrow />
-          <ArchStep tag="MODEL"   label="Spatiotemporal forecaster" desc="Learns pollutant drift from meteorology, emissions and historical patterns." arrow />
-          <ArchStep tag="SCORE"   label="Exposure engine"           desc="Converts forecasts into per-user risk scores and route exposure costs." arrow />
-          <ArchStep tag="OUTPUT"  label="Alerts & routing"          desc="Personalized push alerts and pollution-aware navigation, in real time." arrow={false} />
+          <ArchStep tag="INPUT"   label={t("landing.arch1lbl")}   desc={t("landing.arch1dsc")} arrow />
+          <ArchStep tag="PROCESS" label={t("landing.arch2lbl")}         desc={t("landing.arch2dsc")} arrow />
+          <ArchStep tag="MODEL"   label={t("landing.arch3lbl")} desc={t("landing.arch3dsc")} arrow />
+          <ArchStep tag="SCORE"   label={t("landing.arch4lbl")}           desc={t("landing.arch4dsc")} arrow />
+          <ArchStep tag="OUTPUT"  label={t("landing.arch5lbl")}          desc={t("landing.arch5dsc")} arrow={false} />
         </div>
       </section>
 
       {/* ══════════════════ CTA ══════════════════ */}
       <section className="lp-cta" id="get-started">
-        <h2>Get started</h2>
-        <p className="lp-cta__lead">Give people a reason to trust the air again.</p>
+        <h2>{t("landing.getStarted")}</h2>
+        <p className="lp-cta__lead">{t("landing.givePeople")}</p>
         <p className="lp-cta__sub">
-          Bring AirAware's forecasting and routing engine to your city, campus or app.
+          {t("landing.bringAir")}
         </p>
         <div className="lp-cta__actions">
           <NavLink to="/auth" className="lp-btn lp-btn--primary">Request a demo →</NavLink>
-          <a href="#architecture" className="lp-btn lp-btn--ghost">Read the technical brief</a>
+          <a href="#architecture" className="lp-btn lp-btn--ghost">{t("landing.readTech")}</a>
         </div>
       </section>
 
@@ -317,28 +306,28 @@ export default function LandingPage() {
 
           <div className="lp-footer__cols">
             <div className="lp-footer__col">
-              <strong>PRODUCT</strong>
-              <a href="#how-it-works">How it works</a>
-              <a href="#features">Features</a>
-              <a href="#architecture">Architecture</a>
+              <strong>{t("landing.product")}</strong>
+              <a href="#how-it-works">{t("landing.seeHow")}</a>
+              <a href="#features">{t("landing.features")}</a>
+              <a href="#architecture">{t("landing.architecture")}</a>
             </div>
             <div className="lp-footer__col">
-              <strong>PROJECT</strong>
-              <a href="#architecture">Technical brief</a>
-              <a href="#how-it-works">Dataset &amp; methodology</a>
-              <NavLink to="/about">Team</NavLink>
+              <strong>{t("landing.project")}</strong>
+              <a href="#architecture">{t("landing.techBrief")}</a>
+              <a href="#how-it-works">{t("landing.dataset")}</a>
+              <NavLink to="/about">{t("landing.team")}</NavLink>
             </div>
             <div className="lp-footer__col">
-              <strong>CONTACT</strong>
-              <NavLink to="/auth">Request a demo</NavLink>
-              <a href="mailto:hello@airaware.io">Email us</a>
+              <strong>{t("landing.contact")}</strong>
+              <NavLink to="/auth">{t("landing.reqDemo")}</NavLink>
+              <a href="mailto:hello@airaware.io">{t("landing.emailUs")}</a>
             </div>
           </div>
         </div>
 
         <div className="lp-footer__bottom">
-          <span>© 2026 AirAware. An AI-based air quality prediction &amp; route optimization project.</span>
-          <span>Built for cleaner commutes.</span>
+          <span>{t("landing.copyright1")}</span>
+          <span>{t("landing.copyright2")}</span>
         </div>
       </footer>
 

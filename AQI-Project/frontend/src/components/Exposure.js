@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 function aqiColor(aqi) {
   if (!aqi)      return "#64748b";
@@ -22,6 +23,7 @@ function loadHistory() {
 }
 
 export default function Exposure() {
+  const { t } = useTranslation();
   const [history, setHistory] = useState([]);
 
   useEffect(() => {
@@ -50,19 +52,19 @@ export default function Exposure() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 20 }}>
           <div>
             <div className="section-label" style={{ marginBottom: 6 }}>
-              <ClockIcon /> Personal Exposure History
+              <ClockIcon /> {t('exposure.title')}
             </div>
-            <h2 style={{ margin: 0 }}>Your Exposure Timeline</h2>
+            <h2 style={{ margin: 0 }}>{t('exposure.timeline')}</h2>
           </div>
           {history.length > 0 && (
             <button className="ai-btn ai-btn--ghost ai-btn--sm" onClick={clearHistory}>
-              Clear History
+              {t('exposure.clear')}
             </button>
           )}
         </div>
 
         {history.length === 0 ? (
-          <p style={{ color: "var(--text-muted)" }}>No exposure history recorded yet.</p>
+          <p style={{ color: "var(--text-muted)" }}>{t('exposure.noHistory')}</p>
         ) : (
           <div className="exposure-timeline">
             {history.map((item, i) => (

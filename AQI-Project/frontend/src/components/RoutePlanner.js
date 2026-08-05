@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { evaluateRoutes } from "../services/airQualityService";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -52,6 +53,7 @@ function FitBounds({ start, dest }) {
 }
 
 export default function RoutePlanner() {
+  const { t } = useTranslation();
   const [startCityName, setStartCityName] = useState("");
   const [destCityName,  setDestCityName]  = useState("");
   const [departAt,  setDepartAt]    = useState("09:00");
@@ -110,20 +112,20 @@ export default function RoutePlanner() {
       {/* ── planner panel ── */}
       <div className="route-panel">
         <div className="route-panel__header">
-          <div className="route-panel__label"><RouteIcon /> Route Planner &amp; Exposure</div>
-          <div className="route-panel__title">Plan Route</div>
+          <div className="route-panel__label"><RouteIcon /> {t('route.title')}</div>
+          <div className="route-panel__title">{t('route.plan')}</div>
         </div>
 
         <div className="route-inputs">
           {/* source */}
           <div className="route-col">
-            <label>SOURCE</label>
+            <label>{t('route.source')}</label>
             <select
               className="ai-select"
               value={startCityName}
               onChange={handleStartChange}
             >
-              <option value="">Select city…</option>
+              <option value="">{t('route.selectCity')}</option>
               {CITIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
             </select>
           </div>
@@ -132,30 +134,30 @@ export default function RoutePlanner() {
 
           {/* destination */}
           <div className="route-col">
-            <label>DESTINATION</label>
+            <label>{t('route.dest')}</label>
             <select
               className="ai-select"
               value={destCityName}
               onChange={handleDestChange}
             >
-              <option value="">Select city…</option>
+              <option value="">{t('route.selectCity')}</option>
               {CITIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
             </select>
           </div>
 
           {/* depart at */}
           <div className="route-time">
-            <label>DEPART AT</label>
+            <label>{t('route.depart')}</label>
             <input type="time" value={departAt} onChange={e => setDepartAt(e.target.value)} />
           </div>
         </div>
 
         <div className="route-actions">
           <button className="ai-btn" type="button" onClick={findRoute} disabled={loading}>
-            <RouteIcon /> {loading ? "Evaluating…" : "Get Route AQI Forecast"}
+            <RouteIcon /> {loading ? t('route.eval') : t('route.btnGet')}
           </button>
           <button className="ai-btn ai-btn--ghost" type="button" onClick={clearAll}>
-            Clear
+            {t('route.clear')}
           </button>
         </div>
 
@@ -165,22 +167,22 @@ export default function RoutePlanner() {
       {/* ── result ── */}
       {result && (
         <div className="route-result">
-          <div style={{ fontWeight: 700, marginBottom: 14 }}>Route Summary</div>
+          <div style={{ fontWeight: 700, marginBottom: 14 }}>{t('route.summary')}</div>
           <div className="route-result__grid">
             <div className="route-result__stat">
-              <div className="route-result__stat-label">Distance</div>
+              <div className="route-result__stat-label">{t('route.distance')}</div>
               <div className="route-result__stat-val">{result.distance} km</div>
             </div>
             <div className="route-result__stat">
-              <div className="route-result__stat-label">Travel Time</div>
+              <div className="route-result__stat-label">{t('route.travelTime')}</div>
               <div className="route-result__stat-val">{result.duration} min</div>
             </div>
             <div className="route-result__stat">
-              <div className="route-result__stat-label">Avg AQI Exposure</div>
+              <div className="route-result__stat-label">{t('route.avgAqi')}</div>
               <div className="route-result__stat-val">{result.avgAqi}</div>
             </div>
             <div className="route-result__stat">
-              <div className="route-result__stat-label">Clean-air Score</div>
+              <div className="route-result__stat-label">{t('route.score')}</div>
               <div className="route-result__stat-val">{result.score}%</div>
             </div>
           </div>

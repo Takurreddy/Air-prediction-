@@ -92,6 +92,7 @@ services:
       - ./migrations:/app/migrations
       - ./alembic.ini:/app/alembic.ini
       - ./ml:/app/ml:ro
+      - ./scripts:/app/scripts
 
   worker:
     build: .

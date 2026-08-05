@@ -1,6 +1,7 @@
 import "./App.css";
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import Navbar from "./components/Navbar";
 import LandingPage from "./LandingPage";
@@ -17,13 +18,14 @@ import { useAuth } from "./context/AuthContext";
 const DEMO_ALERT = "Delhi AQI is 284, above your alert threshold of 170. (Very Unhealthy)";
 
 function GlobalAlertBar({ onClose }) {
+  const { t } = useTranslation();
   return (
     <div className="global-alert-bar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
         <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
       </svg>
-      <span><strong>Delhi</strong> {DEMO_ALERT.replace("Delhi ", "")}</span>
+      <span><strong>Delhi</strong> {t('app.demoAlert').replace("Delhi ", "").replace("दिल्ली ", "")}</span>
       <button className="global-alert-bar__close" onClick={onClose}>✕</button>
     </div>
   );
@@ -42,6 +44,7 @@ function ProtectedRoute({ children }) {
 }
 
 function LocationPrompt({ onAllow, onClose }) {
+  const { t } = useTranslation();
   return (
     <div className="location-prompt">
       <div className="location-prompt__content">
@@ -51,14 +54,14 @@ function LocationPrompt({ onAllow, onClose }) {
           </svg>
         </div>
         <div>
-          <div style={{ fontWeight: 700 }}>Use your live location?</div>
+          <div style={{ fontWeight: 700 }}>{t('app.useLive')}</div>
           <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-            Share your GPS location to see real-time AQI and personalized health alerts for exactly where you are.
+            {t('app.shareGps')}
           </div>
         </div>
       </div>
       <div className="location-prompt__actions">
-        <button className="ai-btn ai-btn--sm" onClick={onAllow}>Allow Location</button>
+        <button className="ai-btn ai-btn--sm" onClick={onAllow}>{t('app.allowLoc')}</button>
         <button className="location-prompt__close" onClick={onClose}>✕</button>
       </div>
     </div>

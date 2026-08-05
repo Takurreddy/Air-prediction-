@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import runtimeConfig from "../config/runtimeConfig";
 import {
   fetchAirQualityByCity,
@@ -90,6 +91,7 @@ const InfoIcon = () => (
 );
 
 export default function Prediction() {
+  const { t } = useTranslation();
   const [city, setCity]                     = useState(runtimeConfig.defaultCity);
   const [availableCities, setAvailableCities] = useState([]);
   const [cityStations, setCityStations]     = useState([]);
@@ -201,7 +203,7 @@ export default function Prediction() {
             className="ai-input" style={{ maxWidth: 240 }}
             list="pred-cities" value={city}
             onChange={e => setCity(e.target.value)}
-            placeholder="City name"
+            placeholder={t('forecast.cityName')}
           />
           <datalist id="pred-cities">
             {availableCities.map(c => <option key={c} value={c} />)}
@@ -214,14 +216,14 @@ export default function Prediction() {
               setStation(cityStations.find(s => s.station_id === e.target.value) || null);
             }}
           >
-            <option value="">Select station…</option>
+            <option value="">{t('forecast.selectStation')}</option>
             {cityStations.map(s => <option key={s.station_id} value={s.station_id}>{s.station_id}</option>)}
           </select>
           <button className="ai-btn ai-btn--ghost ai-btn--sm" type="button" onClick={loadStation}>
-            Load Station
+            {t('forecast.loadStation')}
           </button>
           <button className="ai-btn ai-btn--sm" type="button" onClick={runForecast} disabled={isLoading}>
-            {isLoading ? "Forecasting…" : "▶ Run Forecast"}
+            {isLoading ? "Forecasting…" : "▶ " + t('forecast.btnRun')}
           </button>
         </div>
         {error && <p className="status-message status-error" style={{ marginTop: 10 }}>{error}</p>}
@@ -231,24 +233,24 @@ export default function Prediction() {
       <div className="forecast-panel">
         <div className="forecast-panel__header">
           <div>
-            <div className="section-label"><TrendIcon /> Air Quality Forecast <InfoIcon /></div>
-            <div className="forecast-panel__title">{city} — Next 24 Hours</div>
+            <div className="section-label"><TrendIcon /> {t('forecast.title')} <InfoIcon /></div>
+            <div className="forecast-panel__title">{city} — {t('forecast.subtitle')}</div>
           </div>
           {prediction && (
             <div className="forecast-peak">
-              Peak in {prediction.peakHr}hr: {prediction.peakAqi} AQI
+              {t('forecast.peakIn')} {prediction.peakHr}{t('forecast.hr') || 'hr'}: {prediction.peakAqi} AQI
             </div>
           )}
         </div>
 
         {prediction && (
           <div className="forecast-aqi-now" style={{ marginTop: 8 }}>
-            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>IN 6H &nbsp;</span>
+            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{t('forecast.in6h')} &nbsp;</span>
             <span className="forecast-aqi-now__val" style={{ color: aqiColor(prediction.predicted_aqi) }}>
               {Math.round(prediction.predicted_aqi)} AQI
             </span>
             <span className="forecast-aqi-now__range">
-              &nbsp; Range {Math.round(prediction.predicted_aqi * 0.94)}–{Math.round(prediction.predicted_aqi * 1.06)}
+              &nbsp; {t('forecast.range')} {Math.round(prediction.predicted_aqi * 0.94)}–{Math.round(prediction.predicted_aqi * 1.06)}
               &nbsp; · {aqiLabel(prediction.predicted_aqi)}
             </span>
           </div>
@@ -256,7 +258,7 @@ export default function Prediction() {
 
         {!prediction && (
           <div style={{ color: "var(--text-muted)", fontSize: 14, padding: "40px 0", textAlign: "center" }}>
-            Select a city &amp; station, then click <strong style={{ color: "var(--text-main)" }}>Run Forecast</strong> to generate the 24-hour chart.
+            {t('forecast.selectCityPrompt')}
           </div>
         )}
 
