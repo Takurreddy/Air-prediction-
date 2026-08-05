@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { evaluateRoutes } from "../services/airQualityService";
-import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
@@ -93,6 +93,8 @@ export default function RoutePlanner() {
         score:          rec?.avg_aqi    != null ? Math.max(0, 100 - rec.avg_aqi).toFixed(0) : "—",
         recommendation: res.recommendation || "Recommended route selected.",
         avgAqi:         rec?.avg_aqi?.toFixed(0) ?? "—",
+        alternatives:   res.alternatives,
+        recommended_index: res.recommended_index
       });
     } catch (e) {
       setRouteError(e?.response?.data?.detail || "Route evaluation failed.");
@@ -200,6 +202,13 @@ export default function RoutePlanner() {
           <FitBounds start={start} dest={dest} />
           {start && <Marker position={[start.lat, start.lng]} />}
           {dest && <Marker position={[dest.lat, dest.lng]} />}
+          {result && result.alternatives && result.alternatives[result.recommended_index] && (
+            <Polyline
+              positions={result.alternatives[result.recommended_index].waypoints.map(wp => [wp.latitude, wp.longitude])}
+              color="#14b8a6"
+              weight={4}
+            />
+          )}
         </MapContainer>
       </div>
     </div>

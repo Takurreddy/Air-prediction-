@@ -58,10 +58,10 @@ def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 # ── Stub routing provider ─────────────────────────────────────────────────────
 
-def _fetch_routes(request: RouteRequest) -> list[list[Coordinate]]:
+def _fetch_routes(request: RouteRequest) -> list[dict]:
     """
     Fetch route alternatives from OSRM (free) or Google Maps if key is set.
-    Returns a list of alternatives; each is an ordered list of Coordinates.
+    Returns a list of dicts containing waypoints, distance_m, and duration_s.
     """
     if settings.google_maps_api_key:
         return _fetch_routes_google(request)
@@ -91,7 +91,7 @@ def _decode_polyline(encoded: str) -> list[Coordinate]:
     return coords
 
 
-def _fetch_routes_google(request: RouteRequest) -> list[list[Coordinate]]:
+def _fetch_routes_google(request: RouteRequest) -> list[dict]:
     """Fetch up to 3 route alternatives from Google Maps Directions API."""
     import httpx
     waypoints_str = ""
@@ -121,7 +121,7 @@ def _fetch_routes_google(request: RouteRequest) -> list[list[Coordinate]]:
             log.warning("Google Maps returned status: %s", data.get("status"))
             return _fetch_routes_osrm(request)
 
-        alternatives: list[list[Coordinate]] = []
+        alternatives: list[dict] = []
         for route in data.get("routes", []):
             polyline = route["overview_polyline"]["points"]
             coords = _decode_polyline(polyline)
@@ -130,7 +130,15 @@ def _fetch_routes_google(request: RouteRequest) -> list[list[Coordinate]]:
             sampled = coords[::step]
             if sampled[-1] != coords[-1]:
                 sampled.append(coords[-1])
-            alternatives.append(sampled)
+                
+            distance_m = sum(leg["distance"]["value"] for leg in route.get("legs", [])) if "legs" in route else None
+            duration_s = sum(leg["duration"]["value"] for leg in route.get("legs", [])) if "legs" in route else None
+            
+            alternatives.append({
+                "waypoints": sampled,
+                "distance_m": distance_m,
+                "duration_s": duration_s
+            })
 
         return alternatives if alternatives else _fetch_routes_osrm(request)
 
@@ -139,7 +147,7 @@ def _fetch_routes_google(request: RouteRequest) -> list[list[Coordinate]]:
         return _fetch_routes_osrm(request)
 
 
-def _fetch_routes_osrm(request: RouteRequest) -> list[list[Coordinate]]:
+def _fetch_routes_osrm(request: RouteRequest) -> list[dict]:
     """Fetch route alternatives from the free OSRM routing engine."""
     import httpx
 
@@ -158,14 +166,19 @@ def _fetch_routes_osrm(request: RouteRequest) -> list[list[Coordinate]]:
         resp.raise_for_status()
         data = resp.json()
 
-        alternatives: list[list[Coordinate]] = []
+        alternatives: list[dict] = []
         for route in data.get("routes", []):
             geojson_coords = route["geometry"]["coordinates"]
             # Sample every Nth point
             step = max(1, len(geojson_coords) // 20)
             sampled = geojson_coords[::step]
             coords = [Coordinate(latitude=c[1], longitude=c[0]) for c in sampled]
-            alternatives.append(coords)
+            
+            alternatives.append({
+                "waypoints": coords,
+                "distance_m": route.get("distance"),
+                "duration_s": route.get("duration")
+            })
 
         return alternatives if alternatives else _straight_line_fallback(request)
 
@@ -174,12 +187,25 @@ def _fetch_routes_osrm(request: RouteRequest) -> list[list[Coordinate]]:
         return _straight_line_fallback(request)
 
 
-def _straight_line_fallback(request: RouteRequest) -> list[list[Coordinate]]:
+def _straight_line_fallback(request: RouteRequest) -> list[dict]:
     """Last resort: straight line from origin to destination."""
     origin = Coordinate(latitude=request.origin_lat, longitude=request.origin_lon)
     destination = Coordinate(latitude=request.dest_lat, longitude=request.dest_lon)
     midpoints = request.waypoints or []
-    return [[origin, *midpoints, destination]]
+    waypoints = [origin, *midpoints, destination]
+    
+    total_dist = 0.0
+    for i in range(len(waypoints) - 1):
+        total_dist += _haversine_km(waypoints[i].latitude, waypoints[i].longitude, 
+                                   waypoints[i+1].latitude, waypoints[i+1].longitude)
+    
+    duration_s = (total_dist / 50.0) * 3600
+    
+    return [{
+        "waypoints": waypoints,
+        "distance_m": total_dist * 1000,
+        "duration_s": duration_s
+    }]
 
 
 # ── AQI scoring ───────────────────────────────────────────────────────────────
@@ -300,7 +326,8 @@ def evaluate_routes(
     scored_alternatives: list[RouteAlternative] = []
     all_avg_aqis: list[float] = []
 
-    for alt_idx, waypoints in enumerate(alternatives_raw):
+    for alt_idx, alt_data in enumerate(alternatives_raw):
+        waypoints = alt_data["waypoints"]
         scored_wps: list[RouteWaypointOut] = []
         aqi_values: list[float] = []
 
@@ -341,6 +368,8 @@ def evaluate_routes(
                 waypoints=scored_wps,
                 avg_aqi=avg_aqi,
                 max_aqi=max_aqi,
+                distance_m=alt_data.get("distance_m"),
+                duration_s=alt_data.get("duration_s")
             )
         )
 
