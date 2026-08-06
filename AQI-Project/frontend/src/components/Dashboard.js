@@ -1,11 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { MapContainer, TileLayer, Marker, useMap, Tooltip } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import runtimeConfig from "../config/runtimeConfig";
+
 import {
   fetchAirQualityByCity,
   fetchAllStations,
   fetchStationsByCity,
 } from "../services/airQualityService";
+
+// Fix default Leaflet icon paths
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
+  iconUrl: require("leaflet/dist/images/marker-icon.png"),
+  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
+});
 
 /* ── helpers ── */
 function getAqiMeta(v) {
@@ -62,48 +74,79 @@ const TargetIcon = () => (
   </svg>
 );
 
-/* ── India SVG map mock with AQI bubbles ── */
-function IndiaMapMock({ cities, selectedCity, onSelect }) {
-  /* approximate normalized positions inside a 520×500 viewBox */
-  const positions = {
-    Delhi:         { x: 210, y: 110 },
-    Mumbai:        { x: 130, y: 270 },
-    Bengaluru:     { x: 195, y: 360 },
-    Chennai:       { x: 250, y: 370 },
-    Kolkata:       { x: 340, y: 210 },
-    Hyderabad:     { x: 220, y: 300 },
-    Ahmedabad:     { x: 125, y: 200 },
-    Pune:          { x: 145, y: 285 },
-    Jaipur:        { x: 180, y: 140 },
-    Lucknow:       { x: 260, y: 145 },
-    Surat:         { x: 128, y: 240 },
-    Visakhapatnam: { x: 285, y: 310 },
-  };
+const createCustomIcon = (aqi, isSelected) => {
+  const color = aqiColor(aqi);
+  const size = isSelected ? 44 : 36;
+  const fontSize = isSelected ? 12 : 11;
+  const border = isSelected ? '2px solid #fff' : '1px solid rgba(0,0,0,0.3)';
+  
+  const html = `
+    <div style="
+      background-color: ${color};
+      width: ${size}px;
+      height: ${size}px;
+      border-radius: 50%;
+      border: ${border};
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: ${fontSize}px;
+      opacity: 0.9;
+    ">
+      ${aqi}
+    </div>
+  `;
+  
+  return L.divIcon({
+    html,
+    className: 'custom-aqi-icon',
+    iconSize: [size, size],
+    iconAnchor: [size/2, size/2]
+  });
+};
 
+function FitBounds({ selectedCity, cities }) {
+  const map = useMap();
+  useEffect(() => {
+    if (selectedCity) {
+      const city = cities.find(c => c.name === selectedCity);
+      if (city && city.lat && city.lng) {
+        map.setView([city.lat, city.lng], 7, { animate: true });
+      }
+    }
+  }, [selectedCity, cities, map]);
+  return null;
+}
+
+function RealIndiaMap({ cities, selectedCity, onSelect, mapTab }) {
+  const center = [20.5937, 78.9629]; // center of India
+  const tileUrl = mapTab === "hybrid" 
+    ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
 
   return (
-    <svg viewBox="0 0 520 500" style={{ width: "100%", height: "100%" }}>
-      {/* simplified India outline placeholder */}
-      <ellipse cx="230" cy="270" rx="180" ry="200" fill="rgba(30,30,60,0.5)" stroke="rgba(120,100,220,0.3)" strokeWidth="1.5" />
-      {/* AQI bubbles */}
-      {cities.map((city) => {
-        const pos = positions[city.name];
-        if (!pos) return null;
+    <MapContainer center={center} zoom={5} style={{ height: "100%", width: "100%", zIndex: 1 }} scrollWheelZoom={true}>
+      <TileLayer url={tileUrl} />
+      {cities.map(city => {
         const aqi = city.aqi ?? city.defaultAqi;
-        const color = aqiColor(aqi);
         const isSelected = selectedCity === city.name;
         return (
-          <g key={city.name} onClick={() => onSelect(city.name)} style={{ cursor: "pointer" }}>
-            <circle cx={pos.x} cy={pos.y} r={isSelected ? 22 : 18}
-              fill={color} fillOpacity="0.9"
-              stroke={isSelected ? "#fff" : "rgba(0,0,0,0.3)"} strokeWidth={isSelected ? 2 : 1}
-            />
-            <text x={pos.x} y={pos.y + 1} textAnchor="middle" dominantBaseline="middle"
-              fill="#fff" fontSize="11" fontWeight="700">{aqi}</text>
-          </g>
+          <Marker 
+            key={city.name} 
+            position={[city.lat, city.lng]} 
+            icon={createCustomIcon(aqi, isSelected)}
+            eventHandlers={{
+              click: () => onSelect(city.name),
+            }}
+          >
+            <Tooltip>{city.name} (AQI: {aqi})</Tooltip>
+          </Marker>
         );
       })}
-    </svg>
+      <FitBounds selectedCity={selectedCity} cities={cities} />
+    </MapContainer>
   );
 }
 
@@ -355,11 +398,11 @@ export default function Dashboard() {
 
         {/* map */}
         <div style={{ flex: 1, minHeight: 380, position: "relative", borderRadius: "var(--radius-lg)", overflow: "hidden", background: "var(--bg-panel)", border: "1px solid var(--border)" }}>
-          <IndiaMapMock cities={enrichedCities} selectedCity={selectedCity} onSelect={handleCitySelect} />
-          <div style={{ position: "absolute", bottom: 10, left: 14, fontSize: 11, color: "var(--text-muted)" }}>
+          <RealIndiaMap cities={enrichedCities} selectedCity={selectedCity} onSelect={handleCitySelect} mapTab={mapTab} />
+          <div style={{ position: "absolute", bottom: 10, left: 14, fontSize: 11, color: "var(--text-muted)", zIndex: 1000, pointerEvents: "none" }}>
             X: 4.772374 &nbsp; Y: 76.871379
           </div>
-          <div style={{ position: "absolute", bottom: 10, right: 14, display: "flex", gap: 6 }}>
+          <div style={{ position: "absolute", bottom: 10, right: 14, display: "flex", gap: 6, zIndex: 1000 }}>
             {["ZOOM", "+", "−"].map((l, i) => (
               <button key={i} style={{
                 padding: "4px 10px", background: "var(--bg-card)", border: "1px solid var(--border)",
