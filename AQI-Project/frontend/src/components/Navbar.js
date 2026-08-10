@@ -29,12 +29,7 @@ export default function Navbar() {
   const [theme, setTheme] = useState(document.documentElement.getAttribute("data-theme") || "dark");
   const { t, i18n } = useTranslation();
 
-  const toggleLanguage = () => {
-    const newLang = i18n.language === 'en' ? 'hi' : 'en';
-    i18n.changeLanguage(newLang);
-  };
-
-  const currentLangLabel = i18n.language === 'hi' ? 'हिंदी' : 'English';
+  // Language toggle handled by select now
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -102,9 +97,18 @@ export default function Navbar() {
           {theme === 'light' ? '☀️' : <MoonIcon />} {theme === 'light' ? t('nav.light') : t('nav.dark')} <span style={{ color: "var(--text-muted)" }}>▾</span>
         </button>
 
-        <button className="nav-lang-btn" type="button" onClick={toggleLanguage}>
-          {currentLangLabel} <span style={{ color: "var(--text-muted)" }}>▾</span>
-        </button>
+        <select 
+          className="nav-lang-btn" 
+          value={i18n.language} 
+          onChange={(e) => i18n.changeLanguage(e.target.value)}
+          style={{ appearance: "none", background: "transparent", border: "none", color: "inherit", cursor: "pointer", fontSize: "14px", fontWeight: "500", outline: "none", paddingRight: "10px" }}
+        >
+          <option value="en" style={{ color: "#000" }}>English</option>
+          <option value="hi" style={{ color: "#000" }}>हिंदी</option>
+          <option value="te" style={{ color: "#000" }}>తెలుగు</option>
+          <option value="ta" style={{ color: "#000" }}>தமிழ்</option>
+          <option value="kn" style={{ color: "#000" }}>ಕನ್ನಡ</option>
+        </select>
 
         <div className="nav-live">
           <span className="nav-live__dot" />
