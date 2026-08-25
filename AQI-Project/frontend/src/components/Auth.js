@@ -106,7 +106,7 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const apiBase = process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000";
+      const apiBase = process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8080";
 
       if (tab === "signup") {
         /* ── Create account ── */
@@ -168,7 +168,7 @@ export default function Auth() {
 
     } catch (err) {
       setError(
-        "Could not reach the server. Make sure the backend is running on port 8000."
+        "Could not reach the server. Make sure the backend is running on port 8080."
       );
     } finally {
       setLoading(false);

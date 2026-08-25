@@ -1,8 +1,8 @@
 """Temporary bootstrap script — run once to create all DB tables."""
 import sys
 import os
-# Ensure /app is on the path so `app.*` imports resolve
-sys.path.insert(0, "/app")
+# Ensure app module is on the path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import app.models.user
 import app.models.station

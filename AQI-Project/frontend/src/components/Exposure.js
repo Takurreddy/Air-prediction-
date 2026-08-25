@@ -29,7 +29,7 @@ export default function Exposure() {
   useEffect(() => {
     const stored = loadHistory();
     if (stored.length) { setHistory(stored); return; }
-    /* seed with demo data matching the screenshot */
+    /* seed with demo data */
     const demo = [
       { city: "Delhi",   aqi: 284, ts: "3/8/2026 · 09:03 pm" },
       { city: "Delhi",   aqi: 284, ts: "3/8/2026 · 05:28 pm" },
@@ -46,25 +46,63 @@ export default function Exposure() {
     setHistory([]);
   }
 
+  const avgAqi = history.length > 0
+    ? Math.round(history.reduce((acc, h) => acc + (h.aqi || 0), 0) / history.length)
+    : 0;
+
+  const maxAqi = history.length > 0
+    ? Math.max(...history.map(h => h.aqi || 0))
+    : 0;
+
   return (
     <div className="exposure-page">
-      <div className="panel" style={{ maxWidth: 720 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 20 }}>
-          <div>
-            <div className="section-label" style={{ marginBottom: 6 }}>
-              <ClockIcon /> {t('exposure.title')}
-            </div>
-            <h2 style={{ margin: 0 }}>{t('exposure.timeline')}</h2>
+      {/* ── Left Column: Analytics Summary Panel ── */}
+      <div className="panel exposure-summary-panel">
+        <div className="section-label" style={{ marginBottom: 6 }}>
+          <ClockIcon /> {t('exposure.title')}
+        </div>
+        <h2 style={{ margin: "0 0 16px", fontSize: 22 }}>Personal AQI Analytics</h2>
+
+        <div className="exposure-stat-card" style={{ marginBottom: 14 }}>
+          <span className="section-label">LOGGED COMMUTES</span>
+          <div style={{ fontSize: 32, fontWeight: 800, color: "var(--teal-lt)" }}>{history.length}</div>
+        </div>
+
+        <div className="exposure-stat-card" style={{ marginBottom: 14 }}>
+          <span className="section-label">AVERAGE EXPOSURE</span>
+          <div style={{ fontSize: 32, fontWeight: 800, color: aqiColor(avgAqi) }}>
+            {avgAqi ? `AQI ${avgAqi}` : "—"}
           </div>
-          {history.length > 0 && (
-            <button className="ai-btn ai-btn--ghost ai-btn--sm" onClick={clearHistory}>
-              {t('exposure.clear')}
-            </button>
-          )}
+        </div>
+
+        <div className="exposure-stat-card" style={{ marginBottom: 18 }}>
+          <span className="section-label">PEAK EXPOSURE</span>
+          <div style={{ fontSize: 32, fontWeight: 800, color: aqiColor(maxAqi) }}>
+            {maxAqi ? `AQI ${maxAqi}` : "—"}
+          </div>
+        </div>
+
+        {history.length > 0 && (
+          <button className="ai-btn ai-btn--ghost" style={{ width: "100%" }} onClick={clearHistory}>
+            🗑️ {t('exposure.clear')}
+          </button>
+        )}
+      </div>
+
+      {/* ── Right Column: Interactive Timeline List ── */}
+      <div className="panel exposure-timeline-panel">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+          <div>
+            <div className="section-label" style={{ marginBottom: 4 }}>TIMELINE LOG</div>
+            <h2 style={{ margin: 0, fontSize: 20 }}>{t('exposure.timeline')}</h2>
+          </div>
+          <span className="aq-chip-sm" style={{ padding: "4px 12px", background: "var(--bg-card)", border: "1px solid var(--border-mid)", borderRadius: 20, fontSize: 12, fontWeight: 600 }}>
+            {history.length} Logged Entries
+          </span>
         </div>
 
         {history.length === 0 ? (
-          <p style={{ color: "var(--text-muted)" }}>{t('exposure.noHistory')}</p>
+          <p style={{ color: "var(--text-muted)", fontStyle: "italic", margin: "20px 0" }}>{t('exposure.noHistory')}</p>
         ) : (
           <div className="exposure-timeline">
             {history.map((item, i) => (
@@ -73,12 +111,12 @@ export default function Exposure() {
                   className="exposure-item__dot"
                   style={{ background: aqiColor(item.aqi), boxShadow: `0 0 6px ${aqiColor(item.aqi)}` }}
                 />
-                <div>
-                  <div className="exposure-item__city">{item.city}</div>
-                  <div className="exposure-item__time">{item.ts}</div>
+                <div style={{ flex: 1 }}>
+                  <div className="exposure-item__city">📍 {item.city}</div>
+                  <div className="exposure-item__time">📅 {item.ts}</div>
                 </div>
                 {item.aqi && (
-                  <span style={{ marginLeft: "auto", fontSize: 13, fontWeight: 600, color: aqiColor(item.aqi) }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: aqiColor(item.aqi), padding: "4px 12px", background: "var(--bg-card)", border: "1px solid var(--border-mid)", borderRadius: 8 }}>
                     AQI {item.aqi}
                   </span>
                 )}

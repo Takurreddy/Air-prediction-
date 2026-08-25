@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 
-/* ── icons (inline SVG to avoid extra deps) ── */
+/* ── icons ── */
 const WindIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
@@ -29,8 +29,6 @@ export default function Navbar() {
   const [theme, setTheme] = useState(document.documentElement.getAttribute("data-theme") || "dark");
   const { t, i18n } = useTranslation();
 
-  // Language toggle handled by select now
-
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
@@ -39,45 +37,8 @@ export default function Navbar() {
   const dateStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
   const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
-  const tabs = [
-    { to: "/dashboard",     label: "Air\nQuality" },
-    { to: "/prediction",    label: "Forecast" },
-    { to: "/route-planner", label: "Route\nPlanner" },
-    { to: "/alerts",        label: "My\nExposure",    altTo: "/alerts" },
-    { to: "/alerts",        label: "Profile &\nAlerts" },
-  ];
-
   return (
     <nav className="app-nav">
-      {/* ── Tab links ── */}
-      <ul className="nav-tabs">
-        <li>
-          <NavLink to="/dashboard" className={({ isActive }) => isActive ? "active" : ""}>
-            <span style={{ whiteSpace: 'pre-line' }}>{t('nav.airQuality')}</span>
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="/prediction" className={({ isActive }) => isActive ? "active" : ""}>
-            <span style={{ whiteSpace: 'pre-line' }}>{t('nav.forecast')}</span>
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="/route-planner" className={({ isActive }) => isActive ? "active" : ""}>
-            <span style={{ whiteSpace: 'pre-line' }}>{t('nav.routePlanner')}</span>
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="/exposure" className={({ isActive }) => isActive ? "active" : ""}>
-            <span style={{ whiteSpace: 'pre-line' }}>{t('nav.myExposure')}</span>
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="/alerts" className={({ isActive }) => isActive ? "active" : ""}>
-            <span style={{ whiteSpace: 'pre-line' }}>{t('nav.profileAlerts')}</span>
-          </NavLink>
-        </li>
-      </ul>
-
       {/* ── Brand ── */}
       <NavLink to="/" className="nav-brand">
         <span className="nav-brand__icon"><WindIcon /></span>
@@ -87,6 +48,35 @@ export default function Navbar() {
         </span>
       </NavLink>
 
+      {/* ── Tab links ── */}
+      <ul className="nav-tabs">
+        <li>
+          <NavLink to="/dashboard" className={({ isActive }) => isActive ? "active" : ""}>
+            <span>{t('nav.airQuality').replace("\n", " ")}</span>
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/prediction" className={({ isActive }) => isActive ? "active" : ""}>
+            <span>{t('nav.forecast').replace("\n", " ")}</span>
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/route-planner" className={({ isActive }) => isActive ? "active" : ""}>
+            <span>{t('nav.routePlanner').replace("\n", " ")}</span>
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/exposure" className={({ isActive }) => isActive ? "active" : ""}>
+            <span>{t('nav.myExposure').replace("\n", " ")}</span>
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/alerts" className={({ isActive }) => isActive ? "active" : ""}>
+            <span>{t('nav.profileAlerts').replace("\n", " ")}</span>
+          </NavLink>
+        </li>
+      </ul>
+
       {/* ── Right controls ── */}
       <div className="nav-right">
         <button className="nav-theme-btn" type="button" onClick={() => {
@@ -94,26 +84,28 @@ export default function Navbar() {
           document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
           setTheme(isLight ? 'dark' : 'light');
         }}>
-          {theme === 'light' ? '☀️' : <MoonIcon />} {theme === 'light' ? t('nav.light') : t('nav.dark')} <span style={{ color: "var(--text-muted)" }}>▾</span>
+          {theme === 'light' ? '☀️' : <MoonIcon />} {theme === 'light' ? t('nav.light') : t('nav.dark')}
         </button>
 
-        <select 
-          className="nav-lang-btn" 
-          value={i18n.language} 
-          onChange={(e) => i18n.changeLanguage(e.target.value)}
-          style={{ appearance: "none", background: "transparent", border: "none", color: "inherit", cursor: "pointer", fontSize: "14px", fontWeight: "500", outline: "none", paddingRight: "10px" }}
-        >
-          <option value="en" style={{ color: "#000" }}>English</option>
-          <option value="hi" style={{ color: "#000" }}>हिंदी</option>
-          <option value="te" style={{ color: "#000" }}>తెలుగు</option>
-          <option value="ta" style={{ color: "#000" }}>தமிழ்</option>
-          <option value="kn" style={{ color: "#000" }}>ಕನ್ನಡ</option>
-        </select>
+        <div style={{ position: "relative" }}>
+          <select 
+            className="nav-lang-btn" 
+            value={i18n.language} 
+            onChange={(e) => i18n.changeLanguage(e.target.value)}
+            style={{ paddingRight: "28px" }}
+          >
+            <option value="en">🌐 English</option>
+            <option value="hi">🌐 हिंदी</option>
+            <option value="te">🌐 తెలుగు</option>
+            <option value="ta">🌐 தமிழ்</option>
+            <option value="kn">🌐 ಕನ್ನಡ</option>
+          </select>
+        </div>
 
         <div className="nav-live">
           <span className="nav-live__dot" />
           <span>
-            {t('nav.live')} {dateStr}<br />{timeStr}
+            {t('nav.live')} {dateStr} {timeStr}
           </span>
         </div>
 
@@ -126,10 +118,11 @@ export default function Navbar() {
           <button className="nav-guest" type="button" onClick={() => navigate("/auth")}>
             <span className="nav-guest__icon"><UserIcon /></span>
             {t('nav.guestExplorer')}
-            <span style={{ marginLeft: 4, color: "var(--purple-lt)" }}>↗</span>
+            <span style={{ marginLeft: 4, color: "var(--teal-lt)" }}>↗</span>
           </button>
         )}
       </div>
     </nav>
   );
 }
+

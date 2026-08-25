@@ -70,12 +70,18 @@ class Settings(BaseSettings):
 
     @property
     def postgres_url(self) -> str:
-        # quote_plus encodes special characters (@, #, %, etc.) in credentials
+        import socket
+        host = self.postgres_host
+        if host == "postgres":
+            try:
+                socket.gethostbyname(host)
+            except socket.gaierror:
+                host = "127.0.0.1"
         user = quote_plus(self.postgres_user)
         pwd  = quote_plus(self.postgres_password)
         return (
             f"postgresql://{user}:{pwd}"
-            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+            f"@{host}:{self.postgres_port}/{self.postgres_db}"
         )
 
     @property
@@ -87,6 +93,17 @@ class Settings(BaseSettings):
             f"postgresql+asyncpg://{user}:{pwd}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
+
+    @property
+    def influx_url_resolved(self) -> str:
+        import socket
+        url = self.influx_url
+        if "://influxdb:" in url:
+            try:
+                socket.gethostbyname("influxdb")
+            except socket.gaierror:
+                url = url.replace("://influxdb:", "://127.0.0.1:")
+        return url
 
     model_config = {"env_file": ".env"}
 

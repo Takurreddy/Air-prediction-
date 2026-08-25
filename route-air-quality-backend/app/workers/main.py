@@ -139,6 +139,8 @@ async def ingest_openaq() -> None:
                         fields["Hour"] = float(now.hour)
                         fields["DayOfWeek"] = float(now.weekday())
                         fields["Month"] = float(now.month)
+                        fields["latitude"] = float(lat)
+                        fields["longitude"] = float(lon)
                         influx_db.write_air_quality(city["name"], station_id, "openaq", fields)
                         log.info("[OpenAQ] wrote %d fields for %s", len(fields), station_id)
 
@@ -177,6 +179,8 @@ async def ingest_waqi() -> None:
                     fields["Hour"] = float(now.hour)
                     fields["DayOfWeek"] = float(now.weekday())
                     fields["Month"] = float(now.month)
+                    fields["latitude"] = float(lat)
+                    fields["longitude"] = float(lon)
                     # Store overall AQI index too
                     aqi_val = data.get("aqi")
                     if aqi_val and str(aqi_val).isdigit():

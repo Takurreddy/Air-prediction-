@@ -30,13 +30,13 @@ def get_client() -> InfluxDBClient:
     global _client
     if _client is None:
         _client = InfluxDBClient(
-            url=settings.influx_url,
+            url=settings.influx_url_resolved,
             token=settings.influx_token,
             org=settings.influx_org,
             timeout=10_000,       # ms — connection + read timeout
             enable_gzip=True,
         )
-        log.info("InfluxDB client initialised → %s", settings.influx_url)
+        log.info("InfluxDB client initialised → %s", settings.influx_url_resolved)
     return _client
 
 

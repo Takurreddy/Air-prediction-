@@ -125,10 +125,12 @@ def _fetch_routes_google(request: RouteRequest) -> list[dict]:
         for route in data.get("routes", []):
             polyline = route["overview_polyline"]["points"]
             coords = _decode_polyline(polyline)
+            if not coords:
+                continue
             # Sample every Nth point to keep waypoint count manageable
             step = max(1, len(coords) // 20)
             sampled = coords[::step]
-            if sampled[-1] != coords[-1]:
+            if sampled and sampled[-1] != coords[-1]:
                 sampled.append(coords[-1])
                 
             distance_m = sum(leg["distance"]["value"] for leg in route.get("legs", [])) if "legs" in route else None

@@ -48,8 +48,6 @@ function Toggle({ checked, onChange }) {
   );
 }
 
-
-
   /* health profile state */
   const [ageGroup,    setAgeGroup]    = useState("Adult (20-60)");
   const [conditions,  setConditions]  = useState([CONDITIONS[0], CONDITIONS[3], CONDITIONS[4]]);
@@ -59,6 +57,9 @@ function Toggle({ checked, onChange }) {
   /* notification prefs */
   const [emailAlerts,   setEmailAlerts]   = useState(false);
   const [breachOnly,    setBreachOnly]    = useState(true);
+  const [pushPermission, setPushPermission] = useState(
+    typeof Notification !== "undefined" ? Notification.permission : "default"
+  );
 
   /* legacy alerts */
   const [stationId,    setStationId]    = useState("");
@@ -85,10 +86,30 @@ function Toggle({ checked, onChange }) {
     setTimeout(() => setSavedOk(false), 2500);
   }
 
+  /* ── Browser push notification permission ── */
+  async function requestPushPermission() {
+    if (typeof Notification === "undefined") {
+      alert("Push notifications are not supported in this browser.");
+      return;
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      setPushPermission(permission);
+      if (permission === "granted") {
+        new Notification("AirAware India", {
+          body: "Push notifications enabled! You'll be alerted when AQI exceeds your threshold.",
+          icon: "/logo192.png",
+        });
+      }
+    } catch (err) {
+      console.error("Push permission error:", err);
+    }
+  }
+
   async function handleCreate(e) {
     e.preventDefault();
     try {
-      await createAlert({ station_id: stationId, threshold_aqi: threshold, notify_email: emailAlerts, notify_push: false });
+      await createAlert({ station_id: stationId, threshold_aqi: threshold, notify_email: emailAlerts, notify_push: pushPermission === "granted" });
       setStationId(""); await loadAlerts();
     } catch (err) { setAlertError(err?.response?.data?.detail || "Failed to create alert."); }
   }
@@ -193,13 +214,33 @@ function Toggle({ checked, onChange }) {
         </div>
         <h2>{t('alerts.delivery')}</h2>
 
-        {/* browser push — always shown as enabled */}
+        {/* browser push — with actual permission request */}
         <div className="notif-item">
           <div className="notif-item__left">
             <BellIcon />
             <div>
               <div className="notif-item__title">{t('alerts.browserPush')}</div>
               <div className="notif-item__sub">{t('alerts.browserPushSub')}</div>
+              {pushPermission === "default" && (
+                <button
+                  className="ai-btn ai-btn--sm"
+                  type="button"
+                  onClick={requestPushPermission}
+                  style={{ marginTop: 6, fontSize: 11 }}
+                >
+                  Enable Push Notifications
+                </button>
+              )}
+              {pushPermission === "granted" && (
+                <span style={{ fontSize: 11, color: "#22c55e", fontWeight: 600, marginTop: 4, display: "block" }}>
+                  ✓ Notifications enabled
+                </span>
+              )}
+              {pushPermission === "denied" && (
+                <span style={{ fontSize: 11, color: "#ef4444", fontWeight: 600, marginTop: 4, display: "block" }}>
+                  ✕ Notifications blocked — update browser settings
+                </span>
+              )}
             </div>
           </div>
         </div>

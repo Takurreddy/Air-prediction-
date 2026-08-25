@@ -32,3 +32,10 @@ Transcripttxt.txt
 
 # ── Docker ────────────────────────────────────────────────────────────────────
 *.log
+
+.env
+.env.*
+!.env.example
+node_modules/
+build/
+dist/

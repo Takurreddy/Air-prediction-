@@ -13,8 +13,8 @@ import sys
 import os
 from datetime import datetime, timedelta, timezone
 
-# Ensure /app is on the path so `app.*` imports resolve when running this script directly
-sys.path.insert(0, "/app")
+# Ensure app module is on the path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.core.config import settings
 from app.database import influx as influx_db

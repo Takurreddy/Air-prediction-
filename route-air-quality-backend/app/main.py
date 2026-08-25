@@ -15,6 +15,9 @@ from app.routers import (
     saved_locations,
     prediction_history,
 )
+from app.api import analytics as api_analytics
+from app.api import geocoding as api_geocoding
+from app.api import map as api_map
 from app.database import influx as influx_db
 
 log = logging.getLogger(__name__)
@@ -61,6 +64,11 @@ app.include_router(favorite_routes.router,    prefix="/favorite-routes",    tags
 app.include_router(notifications.router,      prefix="/notifications",      tags=["notifications"])
 app.include_router(saved_locations.router,    prefix="/saved-locations",    tags=["saved-locations"])
 app.include_router(prediction_history.router, prefix="/prediction-history", tags=["prediction-history"])
+
+# ── Public API (analytics, geocoding, map) ────────────────────────────────────
+app.include_router(api_analytics.router, prefix="/api/analytics", tags=["analytics"])
+app.include_router(api_geocoding.router, prefix="/api/geocoding", tags=["geocoding"])
+app.include_router(api_map.router,       prefix="/api/map",       tags=["map"])
 
 
 # ── Health ────────────────────────────────────────────────────────────────────

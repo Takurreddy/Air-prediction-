@@ -1,54 +1,14 @@
 import { useEffect, useRef } from "react";
-import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 import "./LandingPage.css";
 
-/* ─── Mini sparkline bars used inside the hero AQI card ─── */
-function SparkBar({ height, active }) {
-  return (
-    <div
-      className={`spark-bar${active ? " spark-bar--active" : ""}`}
-      style={{ height: `${height}%` }}
-    />
-  );
-}
-
-/* ─── Alert pill used in the features section ─── */
-function AlertPill({ icon, color, title, body, time }) {
-  return (
-    <div className={`alert-pill alert-pill--${color}`}>
-      <span className="alert-pill__icon">{icon}</span>
-      <div className="alert-pill__text">
-        <strong>{title}</strong>
-        <p>{body}</p>
-      </div>
-      <span className="alert-pill__time">{time}</span>
-    </div>
-  );
-}
-
-/* ─── Architecture step ─── */
-function ArchStep({ tag, label, desc, arrow }) {
-  return (
-    <div className="arch-step-wrap">
-      <div className="arch-step">
-        <span className="arch-step__tag">{tag}</span>
-        <strong className="arch-step__label">{label}</strong>
-        <p className="arch-step__desc">{desc}</p>
-      </div>
-      {arrow && <span className="arch-arrow">→</span>}
-    </div>
-  );
-}
-
 export default function LandingPage() {
-  const { t } = useTranslation();
-  /* subtle parallax on hero visual */
   const heroVisualRef = useRef(null);
+
   useEffect(() => {
     const handleScroll = () => {
       if (heroVisualRef.current) {
-        heroVisualRef.current.style.transform = `translateY(${window.scrollY * 0.06}px)`;
+        heroVisualRef.current.style.transform = `translateY(${window.scrollY * 0.05}px)`;
       }
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -57,280 +17,286 @@ export default function LandingPage() {
 
   return (
     <div className="lp">
-
-      {/* ══════════════════ HERO ══════════════════ */}
+      {/* ══════════════════ HERO SECTION ══════════════════ */}
       <section className="lp-hero" id="hero">
         <div className="lp-hero__content">
           <span className="lp-eyebrow">
-            <span className="lp-eyebrow__dot" /> Forecast model updated 4 min ago
+            <span className="lp-eyebrow__dot" /> AI-POWERED AIR QUALITY INTELLIGENCE
           </span>
 
           <h1 className="lp-hero__headline">
-            {t('landing.knowAir').split(' ').slice(0, -3).join(' ')}<br />
-            <span className="lp-hero__accent">{t('landing.knowAir').split(' ').slice(-3).join(' ')}</span>
+            Predict Cleaner Journeys <br />
+            <span className="lp-hero__accent">Before You Travel</span>
           </h1>
 
           <p className="lp-hero__sub">
-            {t('landing.fuses')}
+            Know tomorrow's air quality today. AirAware combines AI, environmental intelligence, and route optimization to help you make healthier travel decisions.
           </p>
 
           <div className="lp-hero__ctas">
-            <NavLink to="/auth" className="lp-btn lp-btn--primary">{t('landing.reqDemo')} →</NavLink>
-            <a href="#how-it-works" className="lp-btn lp-btn--ghost">{t('landing.seeHow')}</a>
+            <NavLink to="/auth" className="lp-btn lp-btn--primary">Get Started</NavLink>
+            <a href="#product" className="lp-btn lp-btn--ghost">Explore Product</a>
           </div>
 
           <div className="lp-hero__stats">
             <div className="lp-stat">
               <strong>72hr</strong>
-              <span>{t('landing.forecast72')}</span>
+              <span>Rolling AI Forecast</span>
             </div>
             <div className="lp-stat">
               <strong>±8%</strong>
-              <span>{t('landing.err8')}</span>
+              <span>LSTM Error Margin</span>
             </div>
             <div className="lp-stat">
               <strong>150m</strong>
-              <span>{t('landing.res150')}</span>
+              <span>Spatial Resolution</span>
             </div>
           </div>
         </div>
 
-        {/* floating AQI card */}
+        {/* Hero Visual Card */}
         <div className="lp-hero__visual" ref={heroVisualRef}>
-          <div className="lp-aqi-card">
-            <div className="lp-aqi-card__header">
-              <span className="lp-aqi-card__location">Sector 12 — MG Road corridor</span>
-              <span className="lp-aqi-badge lp-aqi-badge--moderate">MODERATE</span>
+          <div className="lp-engine-card">
+            <div className="lp-engine-card__header">
+              <span className="lp-engine-card__status">
+                <span className="lp-engine-card__dot" /> AirAware Engine Active
+              </span>
+              <span className="lp-engine-card__live">Live Prediction</span>
             </div>
 
-            <div className="lp-aqi-card__value-row">
-              <span className="lp-aqi-card__number">96</span>
-              <span className="lp-aqi-card__label">US AQI · rising ↑</span>
-            </div>
-
-            <div className="lp-sparkline">
-              {[30, 42, 38, 55, 60, 72, 68, 80, 74, 82, 96, 90].map((h, i) => (
-                <SparkBar key={i} height={h} active={i === 10} />
-              ))}
-            </div>
-
-            <div className="lp-spark-times">
-              {["6AM", "9AM", "12PM", "3PM", "6PM", "9PM"].map((t) => (
-                <span key={t}>{t}</span>
-              ))}
-            </div>
-
-            <div className="lp-route-compare">
-              <div className="lp-route-item lp-route-item--bad">
-                <span className="lp-route-dot lp-route-dot--red" />
-                Direct route — AQI 142 avg exposure
+            <div className="lp-engine-card__body">
+              <div className="lp-engine-card__meta">
+                <span className="lp-engine-card__sub">24h Forecast</span>
+                <div className="lp-engine-card__aqi">
+                  178 <span className="lp-engine-card__trend">+37% Better</span>
+                </div>
               </div>
-              <div className="lp-route-item lp-route-item--good">
-                <span className="lp-route-dot lp-route-dot--green" />
-                AirAware route — AQI 61 avg, +6 min
+
+              {/* Curve Graph */}
+              <div className="lp-engine-graph">
+                <svg viewBox="0 0 300 120" fill="none" className="lp-graph-svg">
+                  <path
+                    d="M 10 90 Q 90 80 150 50 T 290 20"
+                    stroke="#3b82f6"
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  <circle cx="150" cy="50" r="5" fill="#3b82f6" />
+                  <foreignObject x="100" y="55" width="80" height="40">
+                    <div className="lp-graph-badge lp-graph-badge--red">
+                      AQI 284<br /><small>Hyderabad</small>
+                    </div>
+                  </foreignObject>
+                  <foreignObject x="220" y="0" width="80" height="40">
+                    <div className="lp-graph-badge lp-graph-badge--green">
+                      AQI 178<br /><small>Bengaluru</small>
+                    </div>
+                  </foreignObject>
+                </svg>
+              </div>
+
+              <div className="lp-engine-card__footer">
+                <div className="lp-safety-badge">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <div>
+                    <strong>Safe to Travel</strong>
+                    <p>Optimal route selected: 18% less exposure.</p>
+                  </div>
+                </div>
+                <NavLink to="/route-planner" className="lp-btn lp-btn--sm lp-btn--primary">Start Route</NavLink>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ══════════════════ HOW IT WORKS ══════════════════ */}
-      <section className="lp-section lp-how" id="how-it-works">
+      {/* ══════════════════ THE REALITY ══════════════════ */}
+      <section className="lp-section lp-reality" id="reality">
+        <div className="lp-split-section">
+          <div className="lp-split-visual">
+            <div className="lp-aura-container">
+              <div className="lp-aura-blob" />
+              <div className="lp-aura-tag lp-aura-tag--top">
+                <span>HAZARDOUS ZONE</span>
+                <strong>AQI 342</strong>
+              </div>
+              <div className="lp-aura-tag lp-aura-tag--bottom">
+                <span>UNHEALTHY</span>
+                <strong>AQI 185</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="lp-split-text">
+            <span className="lp-tag-red">⚠️ THE REALITY</span>
+            <h2>You are navigating blindly through toxic air.</h2>
+            <p>
+              Every day, millions commute through invisible pollution corridors. Without real-time environmental intelligence, you unknowingly expose yourself to severe respiratory and cardiovascular risks.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════ THE SHIFT ══════════════════ */}
+      <section className="lp-section lp-shift" id="shift">
+        <div className="lp-split-section lp-split-section--reverse">
+          <div className="lp-split-text">
+            <span className="lp-tag-blue">⏱ THE SHIFT</span>
+            <h2>Current AQI is already obsolete.</h2>
+            <p>
+              Knowing the air quality <em>right now</em> doesn't help if your commute is in two hours. AirAware uses machine learning to forecast pollution spikes, allowing you to plan ahead instead of reacting too late.
+            </p>
+          </div>
+
+          <div className="lp-split-visual">
+            <div className="lp-forecast-card">
+              <div className="lp-forecast-card__header">
+                <span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Hourly Forecast</span>
+                <span className="lp-chip-sm">AI MODEL v2</span>
+              </div>
+              <div className="lp-forecast-card__chart">
+                <div className="lp-hazard-line"><span>HAZARD THRESHOLD</span></div>
+                <div className="lp-forecast-marker">
+                  <span>AQI</span>
+                  <strong>310</strong>
+                </div>
+              </div>
+              <div className="lp-forecast-card__times">
+                {["1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm"].map(t => <span key={t}>{t}</span>)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════ INTELLIGENCE AT A GLANCE ══════════════════ */}
+      <section className="lp-section lp-glance" id="product">
         <div className="lp-section__header">
-          <h2>{t('landing.sense')}</h2>
-          <p>Three stages, running continuously</p>
-          <span className="lp-section__sub">
-            Each stage feeds the next in a live loop — the model never stops
-            learning from what actually happened versus what it forecast.
-          </span>
+          <h2>Intelligence at a Glance</h2>
+          <p>A real-time, interactive dashboard that transforms complex environmental data into actionable travel intelligence.</p>
         </div>
 
-        <div className="lp-how__steps">
-          <div className="lp-how__step">
-            <div className="lp-how__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <div className="lp-dashboard-frame">
+          <div className="lp-dashboard-mockup">
+            <div className="lp-mockup-header">
+              <div className="lp-mockup-search">🔍 Search locations...</div>
+              <div className="lp-mockup-actions"><span className="lp-mockup-dot" /><span className="lp-mockup-dot" /></div>
             </div>
-            <span className="lp-how__num">01 / Sense</span>
-            <h3>{t("landing.step1Title")}</h3>
-            <p>
-              {t("landing.step1Desc")}
-            </p>
-          </div>
 
-          <div className="lp-how__step">
-            <div className="lp-how__icon lp-how__icon--blue">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M3 3l18 18M9 9a3 3 0 105.12 2.12"/><path d="M17.94 17.94A8 8 0 014.06 4.06"/></svg>
-            </div>
-            <span className="lp-how__num">02 / Predict</span>
-            <h3>{t("landing.step2Title")}</h3>
-            <p>
-              {t("landing.step2Desc")}
-            </p>
-          </div>
-
-          <div className="lp-how__step">
-            <div className="lp-how__icon lp-how__icon--purple">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            </div>
-            <span className="lp-how__num">03 / Protect</span>
-            <h3>{t("landing.step3Title")}</h3>
-            <p>
-              {t("landing.step3Desc")}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════ FEATURES ══════════════════ */}
-      <section className="lp-section lp-features" id="features">
-
-        {/* alerts block */}
-        <div className="lp-feature-row">
-          <div className="lp-feature-row__text">
-            <h2>{t("landing.alertsTuned")}</h2>
-            <p>
-              {t("landing.alertsTunedDesc")}
-            </p>
-            <ul className="lp-feature-list">
-              <li>{t("landing.li1")}</li>
-              <li>{t("landing.li2")}</li>
-              <li>{t("landing.li3")}</li>
-            </ul>
-          </div>
-
-          <div className="lp-feature-row__visual">
-            <AlertPill
-              icon="🟠"
-              color="orange"
-              title={t("landing.a1title")}
-              body={t("landing.a1body")}
-              time={t("landing.a1time")}
-            />
-            <AlertPill
-              icon="🔴"
-              color="red"
-              title={t("landing.a2title")}
-              body={t("landing.a2body")}
-              time={t("landing.a2time")}
-            />
-          </div>
-        </div>
-
-        {/* routing block */}
-        <div className="lp-feature-row lp-feature-row--reverse">
-          <div className="lp-feature-row__text">
-            <h2>{t("landing.routesOpt")}</h2>
-            <p>
-              {t("landing.routesOptDesc")}
-            </p>
-            <ul className="lp-feature-list">
-              <li>{t("landing.li4")}</li>
-              <li>{t("landing.li5")}</li>
-              <li>{t("landing.li6")}</li>
-            </ul>
-          </div>
-
-          <div className="lp-feature-row__visual">
-            <div className="lp-map-mock">
-              <div className="lp-map-mock__grid">
-                {Array.from({ length: 48 }).map((_, i) => (
-                  <div key={i} className={`lp-map-mock__cell lp-map-mock__cell--${i % 7 === 0 ? "hot" : i % 5 === 0 ? "warm" : "cool"}`} />
-                ))}
+            <div className="lp-mockup-grid">
+              <div className="lp-mockup-nav">
+                <div className="lp-mockup-item active">📊 Overview</div>
+                <div className="lp-mockup-item">🗺️ AQI Map</div>
+                <div className="lp-mockup-item">🛣️ Route Planner</div>
+                <div className="lp-mockup-item">📈 Forecast</div>
               </div>
-              <svg className="lp-map-mock__route lp-map-mock__route--red" viewBox="0 0 200 140" fill="none">
-                <path d="M10 70 Q60 20 100 60 Q140 100 190 50" stroke="#ef4444" strokeWidth="2.5" strokeDasharray="5 3"/>
-              </svg>
-              <svg className="lp-map-mock__route lp-map-mock__route--green" viewBox="0 0 200 140" fill="none">
-                <path d="M10 70 Q40 110 80 100 Q130 88 190 50" stroke="#22c55e" strokeWidth="2.5"/>
-              </svg>
+
+              <div className="lp-mockup-main">
+                <div className="lp-mockup-card">
+                  <div className="lp-card-title">AQI Forecast <span className="lp-chip-sm">AI Powered</span></div>
+                  <div className="lp-mockup-curve" />
+                </div>
+                <div className="lp-mockup-card">
+                  <div className="lp-card-title">Health Score</div>
+                  <div className="lp-mockup-gauge"><strong>82</strong><span>Good</span></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Labeled pins */}
+            <div className="lp-callout-pin lp-callout-pin--forecast">
+              <span className="lp-pin-dot" /> AQI Forecast
+            </div>
+            <div className="lp-callout-pin lp-callout-pin--health">
+              <span className="lp-pin-dot" /> Health Score
+            </div>
+            <div className="lp-callout-pin lp-callout-pin--map">
+              <span className="lp-pin-dot" /> Live Map
             </div>
           </div>
         </div>
       </section>
 
-      {/* ══════════════════ STATS BAR ══════════════════ */}
-      <div className="lp-stats-bar">
-        <div className="lp-stats-bar__inner">
-          {[
-            { value: "1.2M+", label: t("landing.statsSensor") },
-            { value: "150m", label: t("landing.statsGrid") },
-            { value: "72hr", label: t("landing.statsRolling") },
-            { value: "±8%", label: t("landing.statsError") },
-          ].map((s) => (
-            <div key={s.label} className="lp-stats-bar__item">
-              <strong>{s.value}</strong>
-              <span>{s.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ══════════════════ ARCHITECTURE ══════════════════ */}
-      <section className="lp-section lp-arch" id="architecture">
+      {/* ══════════════════ FEATURE SUITE GRID ══════════════════ */}
+      <section className="lp-section lp-suite">
         <div className="lp-section__header">
-          <h2>{t("landing.underHood")}</h2>
-          <p>{t("landing.pipeline")}</p>
-          <span className="lp-section__sub">
-            {t("landing.airDoesnt")}
-          </span>
+          <p className="lp-suite-subtitle">AirAware isn't just an air quality monitor. It's a complete environmental intelligence suite.</p>
         </div>
 
-        <div className="lp-arch__pipeline">
-          <ArchStep tag="INPUT"   label={t("landing.arch1lbl")}   desc={t("landing.arch1dsc")} arrow />
-          <ArchStep tag="PROCESS" label={t("landing.arch2lbl")}         desc={t("landing.arch2dsc")} arrow />
-          <ArchStep tag="MODEL"   label={t("landing.arch3lbl")} desc={t("landing.arch3dsc")} arrow />
-          <ArchStep tag="SCORE"   label={t("landing.arch4lbl")}           desc={t("landing.arch4dsc")} arrow />
-          <ArchStep tag="OUTPUT"  label={t("landing.arch5lbl")}          desc={t("landing.arch5dsc")} arrow={false} />
-        </div>
-      </section>
-
-      {/* ══════════════════ CTA ══════════════════ */}
-      <section className="lp-cta" id="get-started">
-        <h2>{t("landing.getStarted")}</h2>
-        <p className="lp-cta__lead">{t("landing.givePeople")}</p>
-        <p className="lp-cta__sub">
-          {t("landing.bringAir")}
-        </p>
-        <div className="lp-cta__actions">
-          <NavLink to="/auth" className="lp-btn lp-btn--primary">Request a demo →</NavLink>
-          <a href="#architecture" className="lp-btn lp-btn--ghost">{t("landing.readTech")}</a>
-        </div>
-      </section>
-
-      {/* ══════════════════ FOOTER ══════════════════ */}
-      <footer className="lp-footer">
-        <div className="lp-footer__inner">
-          <div className="lp-footer__brand">
-            <span className="lp-footer__logo">AirAware</span>
+        <div className="lp-suite-grid">
+          <div className="lp-suite-card lp-suite-card--wide">
+            <h3>Interactive Map</h3>
+            <p>High-resolution pollution heatmaps for your city.</p>
+            <div className="lp-suite-preview lp-suite-preview--map">
+              <div className="lp-preview-pill">AQI 145 · New Delhi</div>
+            </div>
           </div>
 
-          <div className="lp-footer__cols">
-            <div className="lp-footer__col">
-              <strong>{t("landing.product")}</strong>
-              <a href="#how-it-works">{t("landing.seeHow")}</a>
-              <a href="#features">{t("landing.features")}</a>
-              <a href="#architecture">{t("landing.architecture")}</a>
-            </div>
-            <div className="lp-footer__col">
-              <strong>{t("landing.project")}</strong>
-              <a href="#architecture">{t("landing.techBrief")}</a>
-              <a href="#how-it-works">{t("landing.dataset")}</a>
-              <NavLink to="/about">{t("landing.team")}</NavLink>
-            </div>
-            <div className="lp-footer__col">
-              <strong>{t("landing.contact")}</strong>
-              <NavLink to="/auth">{t("landing.reqDemo")}</NavLink>
-              <a href="mailto:hello@airaware.io">{t("landing.emailUs")}</a>
+          <div className="lp-suite-card">
+            <h3>AI Forecast</h3>
+            <p>Tomorrow: <strong>AQI 110</strong> 📈</p>
+          </div>
+
+          <div className="lp-suite-card">
+            <h3>Route Planner</h3>
+            <p>HYD → BLR <strong>18% Cleaner Route</strong></p>
+          </div>
+
+          <div className="lp-suite-card">
+            <h3>Moderate Activity</h3>
+            <p>😷 Mask Recommended</p>
+          </div>
+
+          <div className="lp-suite-card">
+            <h3>Smart Alerts</h3>
+            <p>🔔 Push notifications active</p>
+          </div>
+
+          <div className="lp-suite-card">
+            <h3>AQI Trends</h3>
+            <div className="lp-trend-bars">
+              <div style={{ height: "40%" }} /><div style={{ height: "60%" }} /><div style={{ height: "80%" }} /><div style={{ height: "50%" }} />
             </div>
           </div>
         </div>
+      </section>
 
-        <div className="lp-footer__bottom">
-          <span>{t("landing.copyright1")}</span>
-          <span>{t("landing.copyright2")}</span>
+      {/* ══════════════════ WORKFLOW STEPS ══════════════════ */}
+      <section className="lp-section lp-workflow">
+        <div className="lp-workflow-steps">
+          <div className="lp-wf-step">
+            <div className="lp-wf-icon">📊</div>
+            <strong>Dashboard</strong>
+            <span>Unified overview</span>
+          </div>
+          <div className="lp-wf-step">
+            <div className="lp-wf-icon">🗺️</div>
+            <strong>AQI Map</strong>
+            <span>City-wide heatmaps</span>
+          </div>
+          <div className="lp-wf-step">
+            <div className="lp-wf-icon">🛣️</div>
+            <strong>Route Planner</strong>
+            <span>Healthier directions</span>
+          </div>
+          <div className="lp-wf-step">
+            <div className="lp-wf-icon">🔔</div>
+            <strong>Health Alerts</strong>
+            <span>Personalized notifications</span>
+          </div>
         </div>
-      </footer>
+      </section>
 
+      {/* ══════════════════ CTA BANNER ══════════════════ */}
+      <section className="lp-section lp-cta-banner">
+        <div className="lp-cta-card">
+          <h2>Ready for cleaner air?</h2>
+          <p>Join AirAware today and start making smarter, healthier decisions before you step outside.</p>
+          <NavLink to="/auth" className="lp-btn lp-btn--white">Get Started for Free</NavLink>
+        </div>
+      </section>
     </div>
   );
 }
+

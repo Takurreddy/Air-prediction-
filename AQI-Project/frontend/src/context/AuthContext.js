@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
       return null;
     }
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const isLoading = false;
 
   /* Persist token + user to localStorage whenever they change */
   useEffect(() => {
