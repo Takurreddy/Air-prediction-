@@ -251,11 +251,7 @@ function SocialShare({ station, aqi }) {
 function RealIndiaMap({ cities, selectedCity, onSelect, mapTab }) {
   const center = [22.5937, 78.9629]; // center of India
   const isLight = document.documentElement.getAttribute("data-theme") === "light";
-  const tileUrl = mapTab === "hybrid"
-    ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-    : isLight
-      ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-      : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+  const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
   const [mouseCoords, setMouseCoords] = useState({ lat: "—", lng: "—" });
 
@@ -279,7 +275,10 @@ function RealIndiaMap({ cities, selectedCity, onSelect, mapTab }) {
         maxBoundsViscosity={0.8}
         minZoom={4}
       >
-        <TileLayer url={tileUrl} />
+        <TileLayer
+          url={tileUrl}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
         <GeoJSON data={INDIA_GEOJSON} style={() => geoJsonStyle} />
         <MouseCoordinates onMove={setMouseCoords} />
         {cities.map(city => {
