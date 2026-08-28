@@ -34,19 +34,11 @@
   --indigo-lt:    #818cf8;
   --indigo-dim:   rgba(99, 102, 241, 0.18);
 
-<<<<<<< HEAD
   /* compatibility aliases — actual teal for dark mode */
   --teal:        #0d9488;
   --teal-lt:     #14b8a6;
   --teal-dim:    rgba(13, 148, 136, 0.18);
   --teal-glow:   rgba(13, 148, 136, 0.32);
-=======
-  /* compatibility aliases — indigo-based teal */
-  --teal:        #6d28d9;
-  --teal-lt:     #8b5cf6;
-  --teal-dim:    rgba(109, 40, 217, 0.18);
-  --teal-glow:   rgba(139, 92, 246, 0.32);
->>>>>>> d8c8ee1 (Fix alert banner color, improve dark mode UI, remove WAQI tile dependency)
 
   /* accent — amber */
   --amber:       #d97706;
@@ -743,14 +735,6 @@ body {
 .auth-mode-btn:hover { border-color: var(--teal-lt); color: var(--text-main); }
 .auth-mode-btn--active { background: var(--teal); border-color: var(--teal); color: #fff; }
 
-.auth-method-switch { display: flex; gap: 8px; width: 100%; margin-bottom: 18px; }
-.auth-method-switch button {
-  flex: 1; min-height: 36px; border: 1px solid var(--border-mid); border-radius: var(--radius);
-  background: transparent; color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer;
-}
-.auth-method-switch button.active { background: var(--teal-dim); border-color: var(--teal); color: var(--text-main); }
-.auth-help { display: block; margin-top: 6px; color: var(--text-muted); }
-
 .auth-field { width: 100%; margin-bottom: 16px; }
 .auth-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
 .auth-field__row  { position: relative; }
@@ -864,7 +848,6 @@ body {
 }
 [data-theme="dark"] .aq-dir__item:hover {
   background: rgba(30, 37, 62, 0.95);
-<<<<<<< HEAD
   border-color: rgba(20, 184, 166, 0.5);
   box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.2);
 }
@@ -872,15 +855,6 @@ body {
   background: rgba(13, 148, 136, 0.14);
   border-color: rgba(20, 184, 166, 0.55);
   box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.25), inset 0 0 20px rgba(13, 148, 136, 0.08);
-=======
-  border-color: rgba(139,92,246,0.5);
-  box-shadow: 0 0 0 1px rgba(139,92,246,0.2);
-}
-[data-theme="dark"] .aq-dir__item--active {
-  background: rgba(109,40,217,0.14);
-  border-color: rgba(139,92,246,0.55);
-  box-shadow: 0 0 0 1px rgba(139,92,246,0.25), inset 0 0 20px rgba(109,40,217,0.08);
->>>>>>> d8c8ee1 (Fix alert banner color, improve dark mode UI, remove WAQI tile dependency)
 }
 
 /* Top bar */
@@ -898,13 +872,8 @@ body {
 /* Popup card on map */
 [data-theme="dark"] .aq-popup {
   background: rgba(18, 22, 41, 0.95);
-<<<<<<< HEAD
   border: 1px solid rgba(20, 184, 166, 0.40);
   box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(20, 184, 166, 0.15);
-=======
-  border: 1px solid rgba(139,92,246,0.40);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(139,92,246,0.15);
->>>>>>> d8c8ee1 (Fix alert banner color, improve dark mode UI, remove WAQI tile dependency)
   backdrop-filter: blur(12px);
 }
 
@@ -914,24 +883,14 @@ body {
   border-color: rgba(99,102,241,0.18);
 }
 [data-theme="dark"] .notif-item:hover {
-<<<<<<< HEAD
   border-color: rgba(20, 184, 166, 0.4);
-=======
-  border-color: rgba(139,92,246,0.4);
->>>>>>> d8c8ee1 (Fix alert banner color, improve dark mode UI, remove WAQI tile dependency)
 }
 
 /* Nav active tab glow */
 [data-theme="dark"] .nav-tabs a.active {
-<<<<<<< HEAD
   background: rgba(13, 148, 136, 0.18);
   color: #14b8a6;
   box-shadow: inset 0 0 0 1px rgba(20, 184, 166, 0.55), 0 0 12px rgba(13, 148, 136, 0.2);
-=======
-  background: rgba(109,40,217,0.18);
-  color: #a78bfa;
-  box-shadow: inset 0 0 0 1px rgba(139,92,246,0.55), 0 0 12px rgba(109,40,217,0.2);
->>>>>>> d8c8ee1 (Fix alert banner color, improve dark mode UI, remove WAQI tile dependency)
 }
 
 /* Buttons */
@@ -944,11 +903,7 @@ body {
 }
 [data-theme="dark"] .ai-btn--ghost:hover {
   background: rgba(30,37,62,0.95);
-<<<<<<< HEAD
   border-color: rgba(20, 184, 166, 0.55);
-=======
-  border-color: rgba(139,92,246,0.55);
->>>>>>> d8c8ee1 (Fix alert banner color, improve dark mode UI, remove WAQI tile dependency)
 }
 
 /* Inputs */
@@ -961,23 +916,14 @@ body {
 [data-theme="dark"] .ai-input:focus,
 [data-theme="dark"] .ai-select:focus,
 [data-theme="dark"] .route-input:focus {
-<<<<<<< HEAD
   border-color: rgba(20, 184, 166, 0.7);
   box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.18);
-=======
-  border-color: rgba(139,92,246,0.7);
-  box-shadow: 0 0 0 3px rgba(109,40,217,0.18);
->>>>>>> d8c8ee1 (Fix alert banner color, improve dark mode UI, remove WAQI tile dependency)
 }
 
 /* AQI big circle in dark mode */
 [data-theme="dark"] .aq-big-aqi {
   border-color: var(--teal-lt);
-<<<<<<< HEAD
   box-shadow: 0 0 24px rgba(20, 184, 166, 0.3), inset 0 0 20px rgba(13, 148, 136, 0.08);
-=======
-  box-shadow: 0 0 24px rgba(139,92,246,0.3), inset 0 0 20px rgba(109,40,217,0.08);
->>>>>>> d8c8ee1 (Fix alert banner color, improve dark mode UI, remove WAQI tile dependency)
 }
 
 /* Pollutant grid cells */
@@ -991,11 +937,7 @@ body {
   background: rgba(18,22,41,0.5);
 }
 [data-theme="dark"] .aq-dir-list::-webkit-scrollbar-thumb {
-<<<<<<< HEAD
   background: rgba(20, 184, 166, 0.4);
-=======
-  background: rgba(139,92,246,0.4);
->>>>>>> d8c8ee1 (Fix alert banner color, improve dark mode UI, remove WAQI tile dependency)
 }
 
 /* Toggle track */
@@ -1020,11 +962,7 @@ body {
   border-color: rgba(99,102,241,0.18);
 }
 [data-theme="dark"] .aq-fav-card:hover {
-<<<<<<< HEAD
   border-color: rgba(20, 184, 166, 0.5);
-=======
-  border-color: rgba(139,92,246,0.5);
->>>>>>> d8c8ee1 (Fix alert banner color, improve dark mode UI, remove WAQI tile dependency)
   background: rgba(30,37,62,0.95);
 }
 [data-theme="dark"] .aq-fav-empty {
@@ -1036,23 +974,14 @@ body {
 }
 [data-theme="dark"] .aq-recent-card:hover {
   background: rgba(30,37,62,0.95);
-<<<<<<< HEAD
   border-color: rgba(20, 184, 166, 0.4);
-=======
-  border-color: rgba(139,92,246,0.4);
->>>>>>> d8c8ee1 (Fix alert banner color, improve dark mode UI, remove WAQI tile dependency)
 }
 
 /* Auth card dark */
 [data-theme="dark"] .auth-card {
   background: rgba(13,16,33,0.95);
-<<<<<<< HEAD
   border-color: rgba(20, 184, 166, 0.35);
   box-shadow: 0 20px 60px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(20, 184, 166, 0.1);
-=======
-  border-color: rgba(139,92,246,0.35);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(139,92,246,0.1);
->>>>>>> d8c8ee1 (Fix alert banner color, improve dark mode UI, remove WAQI tile dependency)
 }
 
 /* ═══════════════════════════════════════════════
