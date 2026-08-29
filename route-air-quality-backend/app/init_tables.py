@@ -12,6 +12,7 @@ import app.models.prediction_history
 import app.models.favorite_route
 import app.models.notification
 import app.models.saved_location
+import app.models.otp_challenge
 from app.database.postgres import Base, engine
 
 Base.metadata.create_all(bind=engine)

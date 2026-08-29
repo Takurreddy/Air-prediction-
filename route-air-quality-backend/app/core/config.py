@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     jwt_secret_key: str
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
+    otp_expire_minutes: int = 5
+    otp_max_attempts: int = 5
+    otp_dev_mode: bool = False
+    twilio_account_sid: str = ""
+    twilio_auth_token: str = ""
+    twilio_from_number: str = ""
     clerk_enabled: bool = False
     clerk_jwks_url: str = "https://api.clerk.com/v1/jwks"
     clerk_issuer: str = ""

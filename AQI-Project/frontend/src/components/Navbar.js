@@ -28,6 +28,7 @@ export default function Navbar() {
   const [now, setNow] = useState(new Date());
   const [theme, setTheme] = useState(document.documentElement.getAttribute("data-theme") || "dark");
   const { t, i18n } = useTranslation();
+  const currentLang = i18n.resolvedLanguage || i18n.language?.split("-")[0] || "en";
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -90,7 +91,7 @@ export default function Navbar() {
         <div style={{ position: "relative" }}>
           <select 
             className="nav-lang-btn" 
-            value={i18n.language} 
+            value={currentLang} 
             onChange={(e) => i18n.changeLanguage(e.target.value)}
             style={{ paddingRight: "28px" }}
           >
@@ -125,4 +126,3 @@ export default function Navbar() {
     </nav>
   );
 }
-

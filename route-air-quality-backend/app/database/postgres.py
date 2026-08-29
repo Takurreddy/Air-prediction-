@@ -23,6 +23,7 @@ import app.models.prediction_history
 import app.models.favorite_route
 import app.models.notification
 import app.models.saved_location
+import app.models.otp_challenge
 
 # ── Engine ────────────────────────────────────────────────────────────────────
 try:
@@ -44,6 +45,20 @@ except Exception:
 
 # Auto-create tables if they don't exist
 Base.metadata.create_all(bind=engine)
+
+# Add nullable auth fields to an existing local database on first start.
+from sqlalchemy import inspect, text
+
+with engine.begin() as connection:
+    if "users" in inspect(engine).get_table_names():
+        user_info = inspect(engine).get_columns("users")
+        user_columns = {column["name"] for column in user_info}
+        if "phone_number" not in user_columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN phone_number VARCHAR(20)"))
+        if engine.dialect.name == "postgresql":
+            email_column = next(column for column in user_info if column["name"] == "email")
+            if not email_column["nullable"]:
+                connection.execute(text("ALTER TABLE users ALTER COLUMN email DROP NOT NULL"))
 
 # ── Session factory ───────────────────────────────────────────────────────────
 SessionLocal = sessionmaker(

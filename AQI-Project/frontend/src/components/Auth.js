@@ -73,6 +73,11 @@ export default function Auth() {
 
   const [tab,       setTab]       = useState("signin");
   const [email,     setEmail]     = useState("");
+  const [phone,     setPhone]     = useState("");
+  const [otp,       setOtp]       = useState("");
+  const [authMethod, setAuthMethod] = useState("email");
+  const [otpStep,   setOtpStep]   = useState(false);
+  const [devCode,   setDevCode]   = useState("");
   const [password,  setPassword]  = useState("");
   const [fullName,  setFullName]  = useState("");
   const [loading,   setLoading]   = useState(false);
@@ -80,6 +85,10 @@ export default function Auth() {
 
   function resetForm() {
     setEmail("");
+    setPhone("");
+    setOtp("");
+    setOtpStep(false);
+    setDevCode("");
     setPassword("");
     setFullName("");
     setError("");
@@ -94,6 +103,51 @@ export default function Auth() {
     e.preventDefault();
     setError("");
 
+    const apiBase = process.env.REACT_APP_API_BASE_URL
+      || process.env.REACT_APP_API_URL
+      || "https://air-prediction-production.up.railway.app";
+
+    if (authMethod === "phone") {
+      if (!phone.trim()) {
+        setError("Enter your phone number with country code, for example +919876543210.");
+        return;
+      }
+      setLoading(true);
+      try {
+        if (!otpStep) {
+          const response = await fetch(`${apiBase}/auth/otp/request`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone_number: phone.trim(), full_name: fullName.trim() || null }),
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data?.detail || "Could not send OTP.");
+          setDevCode(data?.dev_code || "");
+          setOtpStep(true);
+          return;
+        }
+
+        if (!otp.trim()) {
+          setError("Enter the OTP sent to your phone.");
+          return;
+        }
+        const response = await fetch(`${apiBase}/auth/otp/verify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone_number: phone.trim(), code: otp.trim(), full_name: fullName.trim() || null }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.detail || "Invalid OTP.");
+        login(data.access_token, { phone_number: phone.trim(), full_name: fullName.trim() || null });
+        navigate("/dashboard");
+      } catch (err) {
+        setError(err.message || "Could not complete phone sign in.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     if (!email.trim()) {
       setError("Enter your email address.");
       return;
@@ -106,8 +160,6 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const apiBase = process.env.REACT_APP_API_URL || "https://air-prediction-production.up.railway.app";
-
       if (tab === "signup") {
         /* ── Create account ── */
         const signupRes = await fetch(`${apiBase}/auth/signup`, {
@@ -201,7 +253,51 @@ export default function Auth() {
         )}
 
         {/* Email */}
-        <div className="auth-field">
+        <div className="auth-method-switch" role="group" aria-label="Authentication method">
+          <button type="button" className={authMethod === "email" ? "active" : ""}
+            onClick={() => { setAuthMethod("email"); setOtpStep(false); setError(""); }}>
+            Email &amp; password
+          </button>
+          <button type="button" className={authMethod === "phone" ? "active" : ""}
+            onClick={() => { setAuthMethod("phone"); setError(""); }}>
+            Phone OTP
+          </button>
+        </div>
+
+        {authMethod === "phone" ? (
+          <>
+            {tab === "signup" && (
+              <div className="auth-field">
+                <label>Full Name (optional)</label>
+                <div className="auth-field__row">
+                  <span className="auth-field__icon"><UserIcon /></span>
+                  <input type="text" placeholder="Your name" value={fullName}
+                    onChange={(e) => setFullName(e.target.value)} autoComplete="name" />
+                </div>
+              </div>
+            )}
+            <div className="auth-field">
+              <label>Phone Number</label>
+              <div className="auth-field__row">
+                <span className="auth-field__icon"><UserIcon /></span>
+                <input type="tel" placeholder="+91 98765 43210" value={phone}
+                  onChange={(e) => setPhone(e.target.value)} autoComplete="tel" disabled={otpStep} />
+              </div>
+            </div>
+            {otpStep && (
+              <div className="auth-field">
+                <label>One-Time Password</label>
+                <div className="auth-field__row">
+                  <span className="auth-field__icon"><LockIcon /></span>
+                  <input type="text" inputMode="numeric" maxLength={6} placeholder="Enter 6-digit OTP"
+                    value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                    autoComplete="one-time-code" autoFocus />
+                </div>
+                {devCode && <small className="auth-help">Development OTP: {devCode}</small>}
+              </div>
+            )}
+          </>
+        ) : <div className="auth-field">
           <label>Email Address</label>
           <div className="auth-field__row">
             <span className="auth-field__icon"><MailIcon /></span>
@@ -214,10 +310,10 @@ export default function Auth() {
               autoComplete="email"
             />
           </div>
-        </div>
+        </div>}
 
         {/* Password */}
-        <div className="auth-field">
+        {authMethod === "email" && <div className="auth-field">
           <label>Password</label>
           <div className="auth-field__row">
             <span className="auth-field__icon"><LockIcon /></span>
@@ -231,7 +327,7 @@ export default function Auth() {
               autoComplete={tab === "signin" ? "current-password" : "new-password"}
             />
           </div>
-        </div>
+        </div>}
 
         {/* Error message */}
         {error && (
@@ -248,9 +344,9 @@ export default function Auth() {
         >
           {loading
             ? "Please wait…"
-            : tab === "signin"
-            ? "Sign In →"
-            : "Create Account →"}
+            : authMethod === "phone"
+            ? (otpStep ? "Verify OTP →" : "Send OTP →")
+            : tab === "signin" ? "Sign In →" : "Create Account →"}
         </button>
       </form>
     </AuthCard>

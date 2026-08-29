@@ -29,7 +29,8 @@ class TokenResponse(BaseModel):
 
 class UserProfile(BaseModel):
     id: uuid.UUID
-    email: str
+    email: str | None = None
+    phone_number: str | None = None
     full_name: str | None = None
     health_profile: dict | None = None
     notification_prefs: dict | None = None
@@ -39,6 +40,17 @@ class UserProfile(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class OtpRequest(BaseModel):
+    phone_number: str = Field(min_length=8, max_length=20)
+    full_name: str | None = Field(None, max_length=255)
+
+
+class OtpVerify(BaseModel):
+    phone_number: str = Field(min_length=8, max_length=20)
+    code: str = Field(min_length=4, max_length=8)
+    full_name: str | None = Field(None, max_length=255)
 
 
 class UserProfileUpdate(BaseModel):

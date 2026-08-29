@@ -4,6 +4,10 @@ Auth helpers: password hashing, JWT creation/decoding, FastAPI dependencies.
 from __future__ import annotations
 
 import uuid
+import hashlib
+import hmac
+import logging
+import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException, status
@@ -17,6 +21,8 @@ from app.core.config import settings
 from app.database.postgres import get_db
 from app.models.user import User
 
+log = logging.getLogger(__name__)
+
 # ── Password hashing ──────────────────────────────────────────────────────────
 _pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -27,6 +33,45 @@ def hash_password(plain: str) -> str:
 
 def verify_password(plain: str, hashed: str) -> bool:
     return _pwd_context.verify(plain, hashed)
+
+
+def normalize_phone(phone_number: str) -> str:
+    raw = phone_number.strip().replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+    if raw.startswith("00"):
+        raw = "+" + raw[2:]
+    if not raw.startswith("+") or not raw[1:].isdigit() or not 8 <= len(raw[1:]) <= 15:
+        raise ValueError("Use an international phone number, for example +919876543210.")
+    return raw
+
+
+def generate_otp() -> str:
+    return f"{secrets.randbelow(1_000_000):06d}"
+
+
+def hash_otp(phone_number: str, code: str) -> str:
+    message = f"{phone_number}:{code}".encode()
+    return hmac.new(settings.jwt_secret_key.encode(), message, hashlib.sha256).hexdigest()
+
+
+def send_otp_sms(phone_number: str, code: str) -> None:
+    """Deliver OTP through Twilio, or log it only when explicitly in dev mode."""
+    if not all((settings.twilio_account_sid, settings.twilio_auth_token, settings.twilio_from_number)):
+        if settings.otp_dev_mode:
+            log.warning("OTP dev mode: %s -> %s", phone_number, code)
+            return
+        raise RuntimeError("OTP delivery is not configured. Set the Twilio environment variables.")
+
+    response = httpx.post(
+        f"https://api.twilio.com/2010-04-01/Accounts/{settings.twilio_account_sid}/Messages.json",
+        data={
+            "From": settings.twilio_from_number,
+            "To": phone_number,
+            "Body": f"Your AirAware OTP is {code}. It expires in {settings.otp_expire_minutes} minutes.",
+        },
+        auth=(settings.twilio_account_sid, settings.twilio_auth_token),
+        timeout=10.0,
+    )
+    response.raise_for_status()
 
 
 # ── JWT ───────────────────────────────────────────────────────────────────────

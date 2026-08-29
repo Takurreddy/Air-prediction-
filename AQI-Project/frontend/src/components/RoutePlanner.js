@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import CITIES from "../config/cities";
+import useLocationTranslation from "../hooks/useLocationTranslation";
 
 // Fix default Leaflet icon paths
 delete L.Icon.Default.prototype._getIconUrl;
@@ -168,6 +169,7 @@ function AqiColorStrip({ path, navIndex }) {
 
 export default function RoutePlanner() {
   const { t } = useTranslation();
+  const { translateCity } = useLocationTranslation();
   const [startCityName, setStartCityName] = useState("Mumbai");
   const [destCityName,  setDestCityName]  = useState("Delhi");
   const [departAt,      setDepartAt]      = useState("09:00");
@@ -356,7 +358,7 @@ export default function RoutePlanner() {
               <label>{t('route.source')}</label>
               <select className="ai-select" value={startCityName} onChange={handleStartChange}>
                 <option value="">Select Origin...</option>
-                {CITIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                {CITIES.map(c => <option key={c.name} value={c.name}>{translateCity(c.name)}</option>)}
               </select>
             </div>
 
@@ -367,7 +369,7 @@ export default function RoutePlanner() {
               <label>{t('route.dest')}</label>
               <select className="ai-select" value={destCityName} onChange={handleDestChange}>
                 <option value="">Select Destination...</option>
-                {CITIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                {CITIES.map(c => <option key={c.name} value={c.name}>{translateCity(c.name)}</option>)}
               </select>
             </div>
           </div>
@@ -509,12 +511,8 @@ export default function RoutePlanner() {
       <div className="route-map-wrapper">
         <MapContainer center={DEFAULT_CENTER} zoom={5} style={{ height: "100%", width: "100%" }} scrollWheelZoom={true}>
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url={
-              (typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light')
-                ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            }
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <FitBounds start={start} dest={dest} />
           <NavCameraFollow position={currentNavPos} isNavigating={isNavigating} />
