@@ -4,7 +4,7 @@
 
 Copy `.env.example` to `.env` and fill values:
 
-- `REACT_APP_API_BASE_URL`: backend base URL (FastAPI)
+- `REACT_APP_API_URL`: backend base URL (FastAPI)
 - `REACT_APP_DEFAULT_CITY`: city used for initial AQI and station lookups
 - `REACT_APP_CLERK_PUBLISHABLE_KEY`: required for Clerk sign-in/sign-up
 - `REACT_APP_CLERK_JWT_TEMPLATE`: optional Clerk JWT template used for backend bearer token forwarding

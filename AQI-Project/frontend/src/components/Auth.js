@@ -103,7 +103,9 @@ export default function Auth() {
     e.preventDefault();
     setError("");
 
-    const apiBase = process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8080";
+    const apiBase = process.env.REACT_APP_API_BASE_URL
+      || process.env.REACT_APP_API_URL
+      || "https://air-prediction-production.up.railway.app";
 
     if (authMethod === "phone") {
       if (!phone.trim()) {
@@ -218,7 +220,7 @@ export default function Auth() {
 
     } catch (err) {
       setError(
-        "Could not reach the server. Make sure the backend is running on port 8080."
+        "Could not reach the server. Make sure the backend is reachable."
       );
     } finally {
       setLoading(false);
