@@ -1,6 +1,11 @@
 import apiClient from "./apiClient";
 import CITIES from "../config/cities";
 
+export async function registerDeviceToken(fcmToken) {
+  const response = await apiClient.post("/notifications/device-token", { fcm_token: fcmToken });
+  return response.data;
+}
+
 // Fallback stations generator for all 27 cities
 const DEFAULT_STATIONS_MAP = {
   "Delhi": [

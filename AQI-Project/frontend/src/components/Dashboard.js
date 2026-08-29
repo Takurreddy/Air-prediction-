@@ -5,6 +5,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import runtimeConfig from "../config/runtimeConfig";
 import CITIES from "../config/cities";
+import useLocationTranslation from "../hooks/useLocationTranslation";
 
 import {
   fetchAirQualityByCity,
@@ -248,7 +249,7 @@ function SocialShare({ station, aqi }) {
   );
 }
 
-function RealIndiaMap({ cities, selectedCity, onSelect, mapTab }) {
+function RealIndiaMap({ cities, selectedCity, onSelect, mapTab, translateCity, t }) {
   const center = [22.5937, 78.9629]; // center of India
   const isLight = document.documentElement.getAttribute("data-theme") === "light";
   const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
@@ -293,14 +294,14 @@ function RealIndiaMap({ cities, selectedCity, onSelect, mapTab }) {
                 click: () => onSelect(city.name),
               }}
             >
-              <Tooltip>{city.name} (AQI: {aqi})</Tooltip>
+              <Tooltip>{translateCity(city.name)} (AQI: {aqi})</Tooltip>
             </Marker>
           );
         })}
         <FitBounds selectedCity={selectedCity} cities={cities} />
       </MapContainer>
       <div style={{ position: "absolute", bottom: 10, left: 14, fontSize: 11, color: "var(--text-muted)", zIndex: 1000, pointerEvents: "none" }}>
-        Lat: {mouseCoords.lat} &nbsp; Lng: {mouseCoords.lng}
+        {t('dashboard.lat')}: {mouseCoords.lat} &nbsp; {t('dashboard.lng')}: {mouseCoords.lng}
       </div>
     </>
   );
@@ -308,6 +309,7 @@ function RealIndiaMap({ cities, selectedCity, onSelect, mapTab }) {
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const { translateCity, searchCities } = useLocationTranslation();
   const [searchQuery, setSearchQuery]       = useState("");
   const [selectedCity, setSelectedCity]     = useState(CITIES[0].name);
   const [station, setStation]               = useState(null);
@@ -391,13 +393,11 @@ export default function Dashboard() {
   const aqiMeta    = getAqiMeta(station?.aqi);
   const displayAqi = station?.aqi ?? CITIES.find(c => c.name === selectedCity)?.defaultAqi ?? "—";
   const selectedCityData = CITIES.find(c => c.name === selectedCity);
+  const selectedCityLabel = translateCity(selectedCity);
 
   const enrichedCities = CITIES.map(c => ({ ...c, aqi: cityAqiMap[c.name] ?? c.defaultAqi }));
 
-  const filteredCities = useMemo(() =>
-    CITIES.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())),
-    [searchQuery]
-  );
+  const filteredCities = useMemo(() => searchCities(searchQuery), [searchQuery, searchCities]);
 
   const now = new Date();
   const dateStr = `${String(now.getDate()).padStart(2,"0")}/${String(now.getMonth()+1).padStart(2,"0")}/${now.getFullYear()} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
@@ -419,7 +419,7 @@ export default function Dashboard() {
           <strong>{availableCities.length || CITIES.length} {t('dashboard.active')}</strong>
         </div>
         <button className="aq-fav-trigger-btn" onClick={() => setShowFavModal(!showFavModal)}>
-          <BookmarkIcon /> Favorite Locations
+          <BookmarkIcon /> Favorites
         </button>
       </div>
 
@@ -439,7 +439,7 @@ export default function Dashboard() {
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {searchHistory.map(c => (
                 <button key={c} className="ai-btn ai-btn--ghost ai-btn--sm" style={{ fontSize: 11 }}
-                  onClick={() => handleCitySelect(c)}>{c}</button>
+                  onClick={() => handleCitySelect(c)}>{translateCity(c)}</button>
               ))}
             </div>
           </div>
@@ -452,7 +452,7 @@ export default function Dashboard() {
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {favorites.map(c => (
                 <button key={c} className="ai-btn ai-btn--ghost ai-btn--sm" style={{ fontSize: 11 }}
-                  onClick={() => handleCitySelect(c)}>{c}</button>
+                  onClick={() => handleCitySelect(c)}>{translateCity(c)}</button>
               ))}
             </div>
           </div>
@@ -474,7 +474,7 @@ export default function Dashboard() {
                 >
                   <div className="aq-dir__info">
                     <div className="aq-dir__city">
-                      <strong>{city.name}</strong>
+                      <strong>{translateCity(city.name)}</strong>
                       <span style={{ color: "var(--text-muted)", fontWeight: 400 }}> ({city.state})</span>
                       <span onClick={(e) => { e.stopPropagation(); handleToggleFavorite(city.name); }}
                         style={{ marginLeft: 4 }}>
@@ -498,14 +498,14 @@ export default function Dashboard() {
         {/* stats panel */}
         {station && (
           <div className="aq-stats">
-            <div className="section-label">Main Statistics</div>
+            <div className="section-label">{t('dashboard.mainStats')}</div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>{selectedCity}</div>
+              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>{selectedCityLabel}</div>
               <span onClick={() => handleToggleFavorite(selectedCity)} style={{ cursor: "pointer" }}>
                 <StarIcon filled={favorites.includes(selectedCity)} />
               </span>
             </div>
-            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 14 }}>{selectedCity}, India</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 14 }}>{selectedCityLabel}, India</div>
             <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
               <div className="aq-big-aqi">
                 <span className="aq-big-aqi__val" style={{ color: aqiColor(displayAqi) }}>{displayAqi}</span>
@@ -589,7 +589,7 @@ export default function Dashboard() {
           <div className="aq-popup" style={{ position: "relative", marginBottom: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <div className="aq-popup__title">📍 {selectedCity}, India Air Quality</div>
+                <div className="aq-popup__title">📍 {selectedCityLabel}, India Air Quality</div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
                   <div style={{ background: "var(--purple)", padding: "2px 10px", borderRadius: 6, fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
                     {displayAqi}
@@ -620,7 +620,14 @@ export default function Dashboard() {
 
         {/* map */}
         <div style={{ flex: 1, minHeight: 380, position: "relative", borderRadius: "var(--radius-lg)", overflow: "hidden", background: "var(--bg-panel)", border: "1px solid var(--border)" }}>
-          <RealIndiaMap cities={enrichedCities} selectedCity={selectedCity} onSelect={handleCitySelect} mapTab={mapTab} />
+          <RealIndiaMap
+            cities={enrichedCities}
+            selectedCity={selectedCity}
+            onSelect={handleCitySelect}
+            mapTab={mapTab}
+            translateCity={translateCity}
+            t={t}
+          />
           <div style={{ position: "absolute", bottom: 10, right: 14, display: "flex", gap: 6, zIndex: 1000 }}>
             {["ZOOM", "+", "−"].map((l, i) => (
               <button key={i} style={{
@@ -638,7 +645,7 @@ export default function Dashboard() {
           <div className="aq-fav-modal" onClick={e => e.stopPropagation()}>
             <div className="aq-fav-modal__header">
               <div className="aq-fav-modal__title">
-                <BookmarkIcon /> Favorite Locations
+                <BookmarkIcon /> Favorites
               </div>
               <button className="aq-fav-modal__close" onClick={() => setShowFavModal(false)}>✕</button>
             </div>
@@ -647,15 +654,15 @@ export default function Dashboard() {
               {favorites.length === 0 ? (
                 <div className="aq-fav-empty">
                   <div className="aq-fav-empty__star">⭐</div>
-                  <h3 className="aq-fav-empty__title">No Favorite Locations</h3>
+                  <h3 className="aq-fav-empty__title">No favorites yet</h3>
                   <p className="aq-fav-empty__desc">Save your frequently monitored cities for quick access.</p>
                   <button className="ai-btn ai-btn--ghost ai-btn--sm" onClick={() => setShowFavModal(false)}>
-                    Browse Cities
+                    Browse cities
                   </button>
                 </div>
               ) : (
                 <div className="aq-fav-list">
-                  <div className="section-label" style={{ marginBottom: 8, fontSize: 11 }}>SAVED LOCATIONS ({favorites.length})</div>
+                  <div className="section-label" style={{ marginBottom: 8, fontSize: 11 }}>Saved locations ({favorites.length})</div>
                   {favorites.map(cityName => {
                     const city = CITIES.find(c => c.name === cityName);
                     const aqi = cityAqiMap[cityName] ?? city?.defaultAqi ?? 100;
@@ -663,7 +670,7 @@ export default function Dashboard() {
                     return (
                       <div key={cityName} className="aq-fav-card" onClick={() => { handleCitySelect(cityName); setShowFavModal(false); }}>
                         <div className="aq-fav-card__info">
-                          <strong style={{ fontSize: 14 }}>📍 {cityName}</strong>
+                          <strong style={{ fontSize: 14 }}>📍 {translateCity(cityName)}</strong>
                           <span style={{ color: "var(--text-muted)", fontSize: 12, marginLeft: 4 }}>({city?.state ?? 'India'})</span>
                           <div style={{ fontSize: 12, marginTop: 3 }}>
                             <span style={{ color: aqiColor(aqi), fontWeight: 700 }}>AQI {aqi}</span> · {meta.label}
@@ -680,7 +687,7 @@ export default function Dashboard() {
 
               {/* RECENTLY VIEWED */}
               <div className="aq-recent-section" style={{ marginTop: 20 }}>
-                <div className="section-label" style={{ marginBottom: 8, fontSize: 11 }}>RECENTLY VIEWED</div>
+                <div className="section-label" style={{ marginBottom: 8, fontSize: 11 }}>Recently viewed</div>
                 {searchHistory.length === 0 ? (
                   <div style={{ fontSize: 12, color: "var(--text-muted)", fontStyle: "italic" }}>No recently viewed cities</div>
                 ) : (
@@ -693,7 +700,7 @@ export default function Dashboard() {
                         <div key={cityName} className="aq-recent-card" onClick={() => { handleCitySelect(cityName); setShowFavModal(false); }}>
                           <span style={{ fontSize: 14 }}>📍</span>
                           <div className="aq-recent-card__details">
-                            <strong style={{ fontSize: 13 }}>{cityName}</strong> <span style={{ color: "var(--text-muted)", fontSize: 11 }}>({city.state})</span>
+                            <strong style={{ fontSize: 13 }}>{translateCity(cityName)}</strong> <span style={{ color: "var(--text-muted)", fontSize: 11 }}>({city.state})</span>
                             <div style={{ fontSize: 11, marginTop: 2, color: "var(--text-muted)" }}>
                               <span style={{ color: aqiColor(aqi), fontWeight: 700 }}>AQI {aqi}</span> · {meta.label} &nbsp; ☀️ 34°C
                             </div>

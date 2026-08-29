@@ -7,10 +7,25 @@ from sqlalchemy.orm import Session
 from app.database.postgres import get_db
 from app.models.notification import Notification
 from app.models.user import User
-from app.schemas.notification import MarkReadRequest, NotificationOut
+from app.schemas.notification import DeviceTokenRequest, MarkReadRequest, NotificationOut
 from app.services.auth_service import get_current_user
 
 router = APIRouter()
+
+
+@router.post("/device-token")
+def register_device_token(
+    payload: DeviceTokenRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Attach the browser/device FCM token used by the alert worker."""
+    preferences = dict(current_user.notification_prefs or {})
+    preferences["fcm_token"] = payload.fcm_token
+    preferences["push_enabled"] = True
+    current_user.notification_prefs = preferences
+    db.commit()
+    return {"registered": True}
 
 
 @router.get("", response_model=list[NotificationOut])

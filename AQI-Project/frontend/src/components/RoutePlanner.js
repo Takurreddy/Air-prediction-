@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import CITIES from "../config/cities";
+import useLocationTranslation from "../hooks/useLocationTranslation";
 
 // Fix default Leaflet icon paths
 delete L.Icon.Default.prototype._getIconUrl;
@@ -168,6 +169,7 @@ function AqiColorStrip({ path, navIndex }) {
 
 export default function RoutePlanner() {
   const { t } = useTranslation();
+  const { translateCity } = useLocationTranslation();
   const [startCityName, setStartCityName] = useState("Mumbai");
   const [destCityName,  setDestCityName]  = useState("Delhi");
   const [departAt,      setDepartAt]      = useState("09:00");
@@ -356,7 +358,7 @@ export default function RoutePlanner() {
               <label>{t('route.source')}</label>
               <select className="ai-select" value={startCityName} onChange={handleStartChange}>
                 <option value="">Select Origin...</option>
-                {CITIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                {CITIES.map(c => <option key={c.name} value={c.name}>{translateCity(c.name)}</option>)}
               </select>
             </div>
 
@@ -367,7 +369,7 @@ export default function RoutePlanner() {
               <label>{t('route.dest')}</label>
               <select className="ai-select" value={destCityName} onChange={handleDestChange}>
                 <option value="">Select Destination...</option>
-                {CITIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                {CITIES.map(c => <option key={c.name} value={c.name}>{translateCity(c.name)}</option>)}
               </select>
             </div>
           </div>

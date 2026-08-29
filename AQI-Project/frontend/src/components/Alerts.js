@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
-import { createAlert, deleteAlert, listAlerts } from "../services/airQualityService";
+import { createAlert, deleteAlert, listAlerts, registerDeviceToken } from "../services/airQualityService";
 
 export default function Alerts() {
   const { isAuthenticated } = useAuth();
@@ -100,6 +100,10 @@ function Toggle({ checked, onChange }) {
           body: "Push notifications enabled! You'll be alerted when AQI exceeds your threshold.",
           icon: "/logo192.png",
         });
+        // A Firebase token can be injected by the PWA bootstrap once Firebase
+        // web credentials are configured; register it with the alert worker.
+        const fcmToken = window.__AIRAWARE_FCM_TOKEN__;
+        if (fcmToken) await registerDeviceToken(fcmToken);
       }
     } catch (err) {
       console.error("Push permission error:", err);

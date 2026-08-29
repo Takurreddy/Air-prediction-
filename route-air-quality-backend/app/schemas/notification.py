@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 NotificationType = Literal["threshold_breach", "route_advisory", "daily_summary"]
 
@@ -35,3 +35,7 @@ class NotificationCreate(BaseModel):
 class MarkReadRequest(BaseModel):
     """Mark one or more notifications as read in a single call."""
     notification_ids: list[uuid.UUID]
+
+
+class DeviceTokenRequest(BaseModel):
+    fcm_token: str = Field(min_length=10, max_length=4096)

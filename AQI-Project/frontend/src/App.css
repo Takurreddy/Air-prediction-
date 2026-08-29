@@ -735,6 +735,14 @@ body {
 .auth-mode-btn:hover { border-color: var(--teal-lt); color: var(--text-main); }
 .auth-mode-btn--active { background: var(--teal); border-color: var(--teal); color: #fff; }
 
+.auth-method-switch { display: flex; gap: 8px; width: 100%; margin-bottom: 18px; }
+.auth-method-switch button {
+  flex: 1; min-height: 36px; border: 1px solid var(--border-mid); border-radius: var(--radius);
+  background: transparent; color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.auth-method-switch button.active { background: var(--teal-dim); border-color: var(--teal); color: var(--text-main); }
+.auth-help { display: block; margin-top: 6px; color: var(--text-muted); }
+
 .auth-field { width: 100%; margin-bottom: 16px; }
 .auth-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
 .auth-field__row  { position: relative; }

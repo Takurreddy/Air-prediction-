@@ -1,6 +1,22 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+const SUPPORTED_LANGS = ["en", "hi", "te", "ta", "kn"];
+
+function getInitialLanguage() {
+  if (typeof window !== "undefined") {
+    const stored = window.localStorage.getItem("airaware-language");
+    if (stored && SUPPORTED_LANGS.includes(stored)) return stored;
+  }
+
+  if (typeof navigator !== "undefined") {
+    const browserLang = navigator.language?.split("-")[0];
+    if (browserLang && SUPPORTED_LANGS.includes(browserLang)) return browserLang;
+  }
+
+  return "en";
+}
+
 const resources = {
   en: {
     translation: {
@@ -443,9 +459,20 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: "en",
+    lng: getInitialLanguage(),
     fallbackLng: "en",
+    supportedLngs: SUPPORTED_LANGS,
+    nonExplicitSupportedLngs: true,
+    load: "languageOnly",
     interpolation: { escapeValue: false }
   });
+
+if (typeof window !== "undefined") {
+  window.document.documentElement.lang = i18n.resolvedLanguage || i18n.language || "en";
+  i18n.on("languageChanged", (lng) => {
+    window.localStorage.setItem("airaware-language", lng);
+    window.document.documentElement.lang = lng;
+  });
+}
 
 export default i18n;

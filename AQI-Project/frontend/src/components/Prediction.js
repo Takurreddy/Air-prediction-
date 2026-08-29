@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import runtimeConfig from "../config/runtimeConfig";
 import ForecastPanel from "./ForecastPanel";
 import CITIES from "../config/cities";
+import useLocationTranslation from "../hooks/useLocationTranslation";
 import {
   fetchAirQualityByCity,
   fetchAllStations,
@@ -40,6 +41,7 @@ const TrendIcon = () => (
 
 export default function Prediction() {
   const { t } = useTranslation();
+  const { translateCity } = useLocationTranslation();
   const [city, setCity]                     = useState(runtimeConfig.defaultCity || "Delhi");
   const [availableCities, setAvailableCities] = useState([]);
   const [cityStations, setCityStations]     = useState([]);
@@ -220,7 +222,7 @@ export default function Prediction() {
                   transition: "all 0.15s",
                 }}
               >
-                {c}
+                {translateCity(c)}
               </button>
             );
           })}
@@ -255,7 +257,7 @@ export default function Prediction() {
             >
               {cityStations.map(s => (
                 <option key={s.station_id} value={s.station_id}>
-                  {s.name || s.station_id} ({s.city})
+                  {s.name || s.station_id} ({translateCity(s.city)})
                 </option>
               ))}
             </select>
