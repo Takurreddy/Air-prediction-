@@ -3,11 +3,13 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PredictionHistoryCreate(BaseModel):
     """Written by the prediction engine after every LSTM inference."""
+    model_config = ConfigDict(protected_namespaces=())
+
     latitude: float
     longitude: float
 
@@ -45,4 +47,4 @@ class PredictionHistoryOut(BaseModel):
     model_version: str | None = None
     confidence_score: float | None = None
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True, protected_namespaces=())
