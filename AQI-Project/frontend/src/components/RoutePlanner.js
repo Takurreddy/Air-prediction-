@@ -249,10 +249,12 @@ export default function RoutePlanner() {
     }
   };
 
-  // Auto-calculate initial route on mount
+  // Auto-calculate route when start/dest changes
   useEffect(() => {
-    findRoute();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (start && dest) {
+      findRoute();
+    }
+  }, [start, dest]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function clearAll() {
     setStart(null); setDest(null); setStartCityName(""); setDestCityName("");
@@ -511,8 +513,8 @@ export default function RoutePlanner() {
       <div className="route-map-wrapper">
         <MapContainer center={DEFAULT_CENTER} zoom={5} style={{ height: "100%", width: "100%" }} scrollWheelZoom={true}>
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           />
           <FitBounds start={start} dest={dest} />
           <NavCameraFollow position={currentNavPos} isNavigating={isNavigating} />

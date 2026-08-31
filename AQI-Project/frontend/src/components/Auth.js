@@ -74,6 +74,7 @@ export default function Auth() {
   const [tab,       setTab]       = useState("signin");
   const [email,     setEmail]     = useState("");
   const [phone,     setPhone]     = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
   const [otp,       setOtp]       = useState("");
   const [authMethod, setAuthMethod] = useState("email");
   const [otpStep,   setOtpStep]   = useState(false);
@@ -109,16 +110,17 @@ export default function Auth() {
 
     if (authMethod === "phone") {
       if (!phone.trim()) {
-        setError("Enter your phone number with country code, for example +919876543210.");
+        setError("Enter your phone number.");
         return;
       }
+      const fullPhone = `${countryCode}${phone.trim()}`;
       setLoading(true);
       try {
         if (!otpStep) {
           const response = await fetch(`${apiBase}/auth/otp/request`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ phone_number: phone.trim(), full_name: fullName.trim() || null }),
+            body: JSON.stringify({ phone_number: fullPhone, full_name: fullName.trim() || null }),
           });
           const data = await response.json();
           if (!response.ok) throw new Error(data?.detail || "Could not send OTP.");
@@ -134,11 +136,11 @@ export default function Auth() {
         const response = await fetch(`${apiBase}/auth/otp/verify`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone_number: phone.trim(), code: otp.trim(), full_name: fullName.trim() || null }),
+          body: JSON.stringify({ phone_number: fullPhone, code: otp.trim(), full_name: fullName.trim() || null }),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data?.detail || "Invalid OTP.");
-        login(data.access_token, { phone_number: phone.trim(), full_name: fullName.trim() || null });
+        login(data.access_token, { phone_number: fullPhone, full_name: fullName.trim() || null });
         navigate("/dashboard");
       } catch (err) {
         setError(err.message || "Could not complete phone sign in.");
@@ -278,10 +280,20 @@ export default function Auth() {
             )}
             <div className="auth-field">
               <label>Phone Number</label>
-              <div className="auth-field__row">
-                <span className="auth-field__icon"><UserIcon /></span>
-                <input type="tel" placeholder="+91 98765 43210" value={phone}
-                  onChange={(e) => setPhone(e.target.value)} autoComplete="tel" disabled={otpStep} />
+              <div className="auth-field__row" style={{ paddingLeft: 0 }}>
+                <span className="auth-field__icon" style={{ paddingLeft: '12px', paddingRight: '8px' }}><UserIcon /></span>
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  disabled={otpStep}
+                  style={{ border: 'none', background: 'transparent', outline: 'none', color: 'var(--text-main)', borderRight: '1px solid var(--border)', paddingRight: '4px', cursor: 'pointer' }}
+                >
+                  <option value="+91">+91</option>
+                  <option value="+1">+1</option>
+                  <option value="+44">+44</option>
+                </select>
+                <input type="tel" placeholder="98765 43210" value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} autoComplete="tel" disabled={otpStep} style={{ paddingLeft: '8px' }} />
               </div>
             </div>
             {otpStep && (

@@ -75,6 +75,29 @@ const INDIA_GEOJSON = {
   }]
 };
 
+/* ── Haversine formula to find closest city ── */
+function findClosestCity(lat, lng, cities) {
+  const toRad = (value) => (value * Math.PI) / 180;
+  let minDistance = Infinity;
+  let closest = null;
+  const R = 6371; // Radius of Earth in km
+  for (const city of cities) {
+    if (!city.lat || !city.lng) continue;
+    const dLat = toRad(city.lat - lat);
+    const dLng = toRad(city.lng - lng);
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(toRad(lat)) * Math.cos(toRad(city.lat)) *
+              Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    if (distance < minDistance) {
+      minDistance = distance;
+      closest = city;
+    }
+  }
+  return closest;
+}
+
 /* ── Map bounds for India ── */
 const INDIA_BOUNDS = [[6.5, 68], [37, 97.5]];
 
@@ -252,7 +275,7 @@ function SocialShare({ station, aqi }) {
 function RealIndiaMap({ cities, selectedCity, onSelect, mapTab, translateCity, t }) {
   const center = [22.5937, 78.9629]; // center of India
   const isLight = document.documentElement.getAttribute("data-theme") === "light";
-  const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+  const tileUrl = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 
   const [mouseCoords, setMouseCoords] = useState({ lat: "—", lng: "—" });
 
@@ -278,7 +301,7 @@ function RealIndiaMap({ cities, selectedCity, onSelect, mapTab, translateCity, t
       >
         <TileLayer
           url={tileUrl}
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
         <GeoJSON data={INDIA_GEOJSON} style={() => geoJsonStyle} />
         <MouseCoordinates onMove={setMouseCoords} />
@@ -385,6 +408,28 @@ export default function Dashboard() {
     loadCityData(cityName);
   };
 
+  const handleLocateMe = () => {
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported by your browser");
+      return;
+    }
+    setLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const closest = findClosestCity(latitude, longitude, CITIES);
+        if (closest) {
+          handleCitySelect(closest.name);
+        }
+        setLoading(false);
+      },
+      (err) => {
+        setError("Unable to retrieve your location. Please check permissions.");
+        setLoading(false);
+      }
+    );
+  };
+
   const handleToggleFavorite = (cityName) => {
     const newFavs = toggleFavorite(cityName);
     setFavorites([...newFavs]);
@@ -414,6 +459,9 @@ export default function Dashboard() {
             placeholder={t('dashboard.search')}
           />
         </div>
+        <button onClick={handleLocateMe} className="ai-btn ai-btn--ghost ai-btn--sm" style={{ marginLeft: 8, whiteSpace: "nowrap" }} title="Locate Me">
+          📍 Locate Me
+        </button>
         <div className="aq-cities-badge">
           <span>{t('dashboard.cities')}</span>
           <strong>{availableCities.length || CITIES.length} {t('dashboard.active')}</strong>

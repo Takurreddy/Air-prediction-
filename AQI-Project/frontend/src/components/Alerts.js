@@ -36,6 +36,11 @@ const AlertTriIcon = () => (
     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
   </svg>
 );
+const SmsIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:18,height:18 }}>
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+);
 
 /* ── Toggle switch component ── */
 function Toggle({ checked, onChange }) {
@@ -56,6 +61,8 @@ function Toggle({ checked, onChange }) {
 
   /* notification prefs */
   const [emailAlerts,   setEmailAlerts]   = useState(false);
+  const [smsAlerts,     setSmsAlerts]     = useState(false);
+  const [smsPhone,      setSmsPhone]      = useState("");
   const [breachOnly,    setBreachOnly]    = useState(true);
   const [pushPermission, setPushPermission] = useState(
     typeof Notification !== "undefined" ? Notification.permission : "default"
@@ -113,7 +120,14 @@ function Toggle({ checked, onChange }) {
   async function handleCreate(e) {
     e.preventDefault();
     try {
-      await createAlert({ station_id: stationId, threshold_aqi: threshold, notify_email: emailAlerts, notify_push: pushPermission === "granted" });
+      await createAlert({ 
+        station_id: stationId, 
+        threshold_aqi: threshold, 
+        notify_email: emailAlerts, 
+        notify_push: pushPermission === "granted",
+        notify_sms: smsAlerts,
+        phone_number: smsAlerts ? smsPhone : null
+      });
       setStationId(""); await loadAlerts();
     } catch (err) { setAlertError(err?.response?.data?.detail || "Failed to create alert."); }
   }
@@ -171,11 +185,11 @@ function Toggle({ checked, onChange }) {
           <span>{threshold}</span>
         </div>
         <input type="range" className="threshold-slider"
-          min={50} max={300} value={threshold}
+          min={30} max={300} value={threshold}
           onChange={e => setThreshold(Number(e.target.value))} />
         <div className="threshold-range">
-          <span>50 ({t('alerts.cautious')})</span>
-          <span>300 ({t('alerts.extreme')})</span>
+          <span>30 ({t('alerts.cautious', 'Cautious')})</span>
+          <span>300 ({t('alerts.extreme', 'Extreme')})</span>
         </div>
 
         <button className="save-profile-btn" type="button" onClick={handleSave}>
@@ -258,6 +272,28 @@ function Toggle({ checked, onChange }) {
           </div>
           <Toggle checked={emailAlerts} onChange={setEmailAlerts} />
         </div>
+
+        <div className="notif-item">
+          <div className="notif-item__left">
+            <SmsIcon />
+            <div>
+              <div className="notif-item__title">{t('alerts.smsAlerts', 'SMS / Mobile Alerts')}</div>
+            </div>
+          </div>
+          <Toggle checked={smsAlerts} onChange={setSmsAlerts} />
+        </div>
+        {smsAlerts && (
+          <div style={{ marginLeft: 34, marginBottom: 12 }}>
+            <input 
+              type="tel" 
+              className="ai-input" 
+              placeholder="+91 9876543210" 
+              value={smsPhone} 
+              onChange={e => setSmsPhone(e.target.value)} 
+              style={{ width: "100%", maxWidth: 250, marginTop: 8 }}
+            />
+          </div>
+        )}
 
         <div className="notif-item">
           <div className="notif-item__left">

@@ -19,10 +19,11 @@ const Exposure     = lazy(() => import("./components/Exposure"));
 
 /* ── Spinner fallback for lazy-loaded routes ── */
 function PageSpinner() {
+  const { t } = useTranslation();
   return (
     <div className="page-spinner">
       <div className="page-spinner__ring" />
-      <p>Loading…</p>
+      <p>{t('app.loading', 'Loading…')}</p>
     </div>
   );
 }
@@ -43,6 +44,7 @@ function GlobalAlertBar({ onClose }) {
 
 /* ── Offline detection banner ── */
 function OfflineBanner() {
+  const { t } = useTranslation();
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useState(() => {
@@ -65,16 +67,17 @@ function OfflineBanner() {
         <path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
         <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
       </svg>
-      <span>You're offline. Some features may be unavailable.</span>
+      <span>{t('app.offline', "You're offline. Some features may be unavailable.")}</span>
     </div>
   );
 }
 
 /* Works with or without Clerk — redirects to /auth instead of Clerk's component */
 function ProtectedRoute({ children }) {
+  const { t } = useTranslation();
   const { isAuthenticated, isLoading } = useAuth();
   if (isLoading) {
-    return <div className="page-wrap"><p style={{ color: "var(--text-muted)", marginTop: 40 }}>Verifying session…</p></div>;
+    return <div className="page-wrap"><p style={{ color: "var(--text-muted)", marginTop: 40 }}>{t('app.verifying', 'Verifying session…')}</p></div>;
   }
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
