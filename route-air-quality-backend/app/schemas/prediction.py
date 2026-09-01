@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # ── LSTM input ────────────────────────────────────────────────────────────────
@@ -49,6 +49,8 @@ class PredictRequest(BaseModel):
 # ── LSTM output ───────────────────────────────────────────────────────────────
 
 class PredictionOut(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+
     station_id:    str
     predicted_for: str          # ISO-8601 UTC timestamp
     # Predicted pollutant concentrations (µg/m³)
