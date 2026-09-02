@@ -16,6 +16,7 @@ const About        = lazy(() => import("./components/About"));
 const Prediction   = lazy(() => import("./components/Prediction"));
 const Auth         = lazy(() => import("./components/Auth"));
 const Exposure     = lazy(() => import("./components/Exposure"));
+const ResetPassword = lazy(() => import("./components/ResetPassword"));
 
 /* ── Spinner fallback for lazy-loaded routes ── */
 function PageSpinner() {
@@ -153,6 +154,7 @@ function App() {
           <Routes>
             <Route path="/"              element={<LandingPage />} />
             <Route path="/auth"          element={<PublicOnlyRoute><Auth /></PublicOnlyRoute>} />
+            <Route path="/reset-password" element={<PublicOnlyRoute><ResetPassword /></PublicOnlyRoute>} />
             <Route path="/about"         element={<About />} />
             <Route path="/dashboard"     element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/route-planner" element={<ProtectedRoute><RoutePlanner /></ProtectedRoute>} />
