@@ -373,6 +373,7 @@ export default function Dashboard() {
   const [favorites, setFavorites]           = useState(getFavorites());
   const [searchHistory]                     = useState(getSearchHistory());
   const [showFavModal, setShowFavModal]     = useState(false);
+  const [cityDirOpen, setCityDirOpen]       = useState(false);
 
   const loadCityData = useCallback(async (city) => {
     try {
@@ -534,11 +535,16 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* directory */}
+        {/* directory — collapsible */}
         <div className="aq-dir">
           <div className="section-label"><PinIcon /> {t('dashboard.interactiveDir')}</div>
-          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 8 }}>{t('dashboard.exploreCoords')} ({filteredCities.length})</div>
-          <div className="aq-dir-list">
+          <div className="aq-dir__header" onClick={() => setCityDirOpen(prev => !prev)}>
+            <div style={{ fontWeight: 700, fontSize: 13 }}>{t('dashboard.exploreCoords')} ({filteredCities.length})</div>
+            <button className="aq-dir__toggle" title={cityDirOpen ? "Collapse" : "Expand"}>
+              {cityDirOpen ? "▲ Hide" : "▼ Show"}
+            </button>
+          </div>
+          <div className={`aq-dir__list${cityDirOpen ? "" : " aq-dir__list--collapsed"}`}>
             {filteredCities.map(city => {
               const aqi = cityAqiMap[city.name] ?? city.defaultAqi;
               const isFav = favorites.includes(city.name);
@@ -551,18 +557,17 @@ export default function Dashboard() {
                   <div className="aq-dir__info">
                     <div className="aq-dir__city">
                       <strong>{translateCity(city.name)}</strong>
-                      <span style={{ color: "var(--text-muted)", fontWeight: 400 }}> ({city.state})</span>
                       <span onClick={(e) => { e.stopPropagation(); handleToggleFavorite(city.name); }}
                         style={{ marginLeft: 4 }}>
                         <StarIcon filled={isFav} />
                       </span>
                     </div>
                     <div className="aq-dir__coords">
-                      {t('dashboard.lat')}: {city.lat} | {t('dashboard.lng')}: {city.lng}
+                      {city.state} · {city.lat.toFixed(2)}, {city.lng.toFixed(2)}
                     </div>
                   </div>
                   <div className="aq-dir__aqi" style={{ color: aqiColor(aqi) }}>
-                    AQI {aqi}
+                    {aqi}
                     <span className="aqi-dot aqi-dot--pulse" style={{ background: aqiColor(aqi), boxShadow: `0 0 6px ${aqiColor(aqi)}` }} />
                   </div>
                 </div>

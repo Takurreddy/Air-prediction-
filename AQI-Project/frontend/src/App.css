@@ -409,15 +409,28 @@ body {
 .aq-page-title span { color: var(--text-muted); font-weight: 400; }
 .aq-meta { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--text-muted); margin-bottom: 18px; }
 
-.aq-dir { margin-bottom: 18px; }
+.aq-dir { margin-bottom: 12px; }
+.aq-dir__header {
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none; margin-bottom: 6px;
+}
+.aq-dir__header:hover { opacity: 0.85; }
+.aq-dir__toggle {
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  font-size: 11px; padding: 2px 8px; border-radius: 4px;
+  transition: background 200ms, color 200ms;
+  display: flex; align-items: center; gap: 4px;
+}
+.aq-dir__toggle:hover { background: rgba(255,255,255,.08); color: var(--text-main); }
 .aq-dir__list {
-  max-height: 270px;
+  max-height: 200px;
   overflow-y: auto;
   padding-right: 4px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 3px;
 }
+.aq-dir__list--collapsed { display: none; }
 .aq-dir__list::-webkit-scrollbar { width: 5px; }
 .aq-dir__list::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); border-radius: 4px; }
 .aq-dir__list::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 4px; }
@@ -425,7 +438,7 @@ body {
 
 .aq-dir__item {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 12px; border-radius: var(--radius);
+  padding: 5px 10px; border-radius: var(--radius);
   background: rgba(255,255,255,.03); border: 1px solid var(--glass-border);
   cursor: pointer;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
@@ -433,9 +446,10 @@ body {
 }
 .aq-dir__item:hover       { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.15); transform: translateX(3px); box-shadow: 0 4px 16px rgba(0,0,0,.2); }
 .aq-dir__item--active     { border-color: var(--teal-lt); background: rgba(13,148,136,.1); box-shadow: 0 0 18px rgba(13,148,136,.12), inset 0 1px 0 rgba(255,255,255,.08); }
-.aq-dir__city   { font-size: 13px; font-weight: 600; }
-.aq-dir__coords { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
-.aq-dir__aqi    { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 700; }
+.aq-dir__city   { font-size: 12px; font-weight: 600; }
+.aq-dir__coords { font-size: 9px; color: var(--text-muted); margin-top: 1px; display: none; }
+.aq-dir__item--active .aq-dir__coords { display: block; }
+.aq-dir__aqi    { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; white-space: nowrap; }
 
 .aq-stats { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
 .aq-big-aqi {
