@@ -19,6 +19,15 @@ const CITY_TRANSLATIONS = {
     Patna: "पटना", Varanasi: "वाराणसी", Agra: "आगरा", Chandigarh: "चंडीगढ़",
     Guwahati: "गुवाहाटी", Thiruvananthapuram: "तिरुवनंतपुरम", Kochi: "कोच्चि",
     Coimbatore: "कोयंबटूर", Dehradun: "देहरादून", Ranchi: "रांची", Bhubaneswar: "भुवनेश्वर",
+    Noida: "नोएडा", Gurugram: "गुरुग्राम", Ghaziabad: "गाजियाबाद", Faridabad: "फरीदाबाद",
+    Amritsar: "अमृतसर", Ludhiana: "लुधियाना", Srinagar: "श्रीनगर", Jammu: "जम्मू",
+    Shimla: "शिमला", Meerut: "मेरठ", Jodhpur: "जोधपुर", Udaipur: "उदयपुर",
+    Vadodara: "वडोदरा", Rajkot: "राजकोट", Nashik: "नासिक", Aurangabad: "औरंगाबाद",
+    Gwalior: "ग्वालियर", Jabalpur: "जबलपुर", Raipur: "रायपुर", Gaya: "गया",
+    Cuttack: "कटक", Siliguri: "सिलीगुड़ी", Asansol: "आसनसोल", Shillong: "शिलांग",
+    Imphal: "इम्फाल", Agartala: "अगरतला", Vijayawada: "विजयवाड़ा", Tirupati: "तिरुपति",
+    Madurai: "मदुरै", Salem: "सलेम", Kozhikode: "कोझिकोड", Mysuru: "मैसूर",
+    Mangaluru: "मंगलुरु", Panaji: "पणजी", Puducherry: "पुडुचेरी"
   },
   ta: {
     Chennai: "சென்னை", Coimbatore: "கோயம்புத்தூர்", Delhi: "டெல்லி",
