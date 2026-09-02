@@ -36,28 +36,42 @@ const UserIcon = () => (
 function AuthCard({ tab, setTab, children, onGuest }) {
   return (
     <div className="auth-page">
+      <div className="orb orb-1"></div>
+      <div className="orb orb-2"></div>
+      <div className="orb orb-3"></div>
       <div className="auth-card">
         <div className="auth-card__icon"><WindIcon /></div>
         <h2 className="auth-card__title">AirAware <span>India</span></h2>
         <p className="auth-card__sub">
           Access India's premier air quality monitoring network
         </p>
-        <div className="auth-tabs">
-          <button
-            className={`auth-tab${tab === "signin" ? " auth-tab--active" : ""}`}
-            type="button"
-            onClick={() => setTab("signin")}
-          >
-            Sign In
-          </button>
-          <button
-            className={`auth-tab${tab === "signup" ? " auth-tab--active" : ""}`}
-            type="button"
-            onClick={() => setTab("signup")}
-          >
-            Create Account
-          </button>
-        </div>
+        {tab === "forgot" ? (
+          <div className="auth-tabs">
+            <button className="auth-tab auth-tab--active" type="button" style={{ background: 'transparent', color: 'var(--text-main)', boxShadow: 'none' }}>
+              Reset Password
+            </button>
+            <button className="auth-tab" type="button" onClick={() => setTab("signin")}>
+              Back to Sign In
+            </button>
+          </div>
+        ) : (
+          <div className="auth-tabs">
+            <button
+              className={`auth-tab${tab === "signin" ? " auth-tab--active" : ""}`}
+              type="button"
+              onClick={() => setTab("signin")}
+            >
+              Sign In
+            </button>
+            <button
+              className={`auth-tab${tab === "signup" ? " auth-tab--active" : ""}`}
+              type="button"
+              onClick={() => setTab("signup")}
+            >
+              Create Account
+            </button>
+          </div>
+        )}
         {children}
         <button className="auth-guest" type="button" onClick={onGuest}>
           <UserIcon /> Continue as Guest
@@ -84,6 +98,7 @@ export default function Auth() {
   const [fullName,  setFullName]  = useState("");
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   function resetForm() {
     setEmail("");
@@ -94,6 +109,7 @@ export default function Auth() {
     setPassword("");
     setFullName("");
     setError("");
+    setSuccessMsg("");
   }
 
   function handleTabChange(newTab) {
@@ -104,6 +120,30 @@ export default function Auth() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setSuccessMsg("");
+
+    if (tab === "forgot") {
+      if (!email.trim()) {
+        setError("Enter your email address.");
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await fetch(`${runtimeConfig.apiBaseUrl}/auth/forgot-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim().toLowerCase() })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Request failed.");
+        setSuccessMsg(data.message || "Reset link sent!");
+      } catch (err) {
+        setError(err.message || "Could not send reset link.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     if (authMethod === "phone") {
       if (!phone.trim()) {
@@ -246,7 +286,8 @@ export default function Auth() {
         <div style={{ textAlign: "center", margin: "8px 0", color: "#888", fontSize: "0.9rem" }}></div>
 
         {/* Auth method toggle */}
-        <div className="auth-method-switch" role="group" aria-label="Authentication method">
+        {tab !== "forgot" && (
+          <div className="auth-method-switch" role="group" aria-label="Authentication method">
           <button type="button" className={authMethod === "email" ? "active" : ""}
             onClick={() => { setAuthMethod("email"); setOtpStep(false); setError(""); }}>
             Email &amp; password
@@ -256,8 +297,9 @@ export default function Auth() {
             Phone OTP
           </button>
         </div>
+        )}
 
-        {authMethod === "phone" ? (
+        {authMethod === "phone" && tab !== "forgot" ? (
           <>
             {tab === "signup" && (
               <div className="auth-field">
@@ -316,8 +358,9 @@ export default function Auth() {
         </div>}
 
         {/* Password */}
-        {authMethod === "email" && <div className="auth-field">
-          <label>Password</label>
+        {authMethod === "email" && tab !== "forgot" && (
+          <div className="auth-field">
+            <label>Password</label>
           <div className="auth-field__row">
             <span className="auth-field__icon"><LockIcon /></span>
             <input
@@ -330,7 +373,20 @@ export default function Auth() {
               autoComplete={tab === "signin" ? "current-password" : "new-password"}
             />
           </div>
-        </div>}
+          {tab === "signin" && (
+            <button type="button" className="auth-field__forgot" onClick={() => setTab("forgot")} style={{ background: 'none', border: 'none', cursor: 'pointer', marginTop: 4, padding: 0 }}>
+              Forgot password?
+            </button>
+          )}
+        </div>)}
+
+        {/* Success message */}
+        {successMsg && (
+          <p className="status-message status-success"
+            style={{ width: "100%", marginBottom: 12, color: 'var(--teal-lt)', textAlign: 'center', fontSize: '0.9rem' }}>
+            {successMsg}
+          </p>
+        )}
 
         {/* Error message */}
         {error && (
@@ -347,6 +403,8 @@ export default function Auth() {
         >
           {loading
             ? "Please wait…"
+            : tab === "forgot"
+            ? "Send Reset Link →"
             : authMethod === "phone"
             ? (otpStep ? "Verify OTP →" : "Send OTP →")
             : tab === "signin" ? "Sign In →" : "Create Account →"}

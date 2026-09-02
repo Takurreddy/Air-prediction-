@@ -63,6 +63,7 @@ class Settings(BaseSettings):
     smtp_port: int = 587
     smtp_user: str = ""
     smtp_password: str = ""
+    frontend_url: str = "http://localhost:3000"
 
     # ── ML artifact paths (resolved at runtime inside the container) ──────────
     ml_model_path: str = "ml/lstm_air_quality_model.keras"

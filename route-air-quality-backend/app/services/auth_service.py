@@ -8,6 +8,8 @@ import hashlib
 import hmac
 import logging
 import secrets
+import smtplib
+from email.mime.text import MIMEText
 from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException, status
@@ -104,6 +106,50 @@ def create_access_token(data: dict) -> tuple[str, int]:
     payload = {**data, "exp": expire}
     token = jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
     return token, settings.access_token_expire_minutes * 60
+
+
+def generate_password_reset_token(email: str) -> str:
+    """Generate a short-lived token for password reset."""
+    expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    payload = {"sub": email, "exp": expire, "type": "reset_password"}
+    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+
+
+def verify_password_reset_token(token: str) -> str | None:
+    """Verify the reset token and return the email address if valid."""
+    try:
+        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+        if payload.get("type") != "reset_password":
+            return None
+        return payload.get("sub")
+    except JWTError:
+        return None
+
+
+def send_password_reset_email(email_to: str, token: str) -> None:
+    """Send the password reset link to the user's email, or print to console if SMTP is unconfigured."""
+    reset_link = f"{settings.frontend_url}/reset-password?token={token}"
+    
+    if not settings.smtp_host or not settings.smtp_user:
+        log.warning("=========================================================")
+        log.warning(f"SMTP NOT CONFIGURED. Reset link for {email_to}:")
+        log.warning(reset_link)
+        log.warning("=========================================================")
+        return
+
+    msg = MIMEText(f"Click the following link to reset your password:\n\n{reset_link}\n\nThis link will expire in 15 minutes.")
+    msg["Subject"] = "AirAware Password Reset"
+    msg["From"] = settings.smtp_user
+    msg["To"] = email_to
+
+    try:
+        with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
+            server.starttls()
+            server.login(settings.smtp_user, settings.smtp_password)
+            server.send_message(msg)
+    except Exception as e:
+        log.error(f"Failed to send password reset email: {e}")
+        raise RuntimeError("Failed to send password reset email.") from e
 
 
 def _decode_token(token: str) -> uuid.UUID:

@@ -432,7 +432,7 @@ export default function RoutePlanner() {
           </div>
 
           <div className="route-actions" style={{ marginTop: 12, alignItems: "center" }}>
-            <button className="ai-btn ai-btn--sm" type="button" onClick={findRoute} disabled={loading} style={{ flex: 1 }}>
+            <button className="ai-btn ai-btn--sm" type="button" onClick={() => findRoute()} disabled={loading} style={{ flex: 1 }}>
               <RouteIcon /> {loading ? "Evaluating…" : "Get Route AQI Forecast"}
             </button>
 

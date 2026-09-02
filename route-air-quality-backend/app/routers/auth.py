@@ -15,6 +15,8 @@ from app.schemas.user import (
     UserProfileUpdate,
     OtpRequest,
     OtpVerify,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
 )
 from app.models.otp_challenge import OtpChallenge
 from app.core.config import settings
@@ -27,6 +29,9 @@ from app.services.auth_service import (
     hash_otp,
     normalize_phone,
     send_otp_sms,
+    generate_password_reset_token,
+    verify_password_reset_token,
+    send_password_reset_email,
 )
 
 router = APIRouter()
@@ -148,6 +153,42 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
 
     token, expires_in = create_access_token({"sub": str(user.id)})
     return TokenResponse(access_token=token, expires_in=expires_in)
+
+
+@router.post("/forgot-password", status_code=status.HTTP_200_OK)
+def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """Send a password reset email if the user exists."""
+    user = db.query(User).filter(User.email == payload.email).first()
+    if not user:
+        # To prevent email enumeration, return the same success response
+        return {"message": "If an account with that email exists, we have sent a reset link."}
+    if not user.is_active:
+        return {"message": "If an account with that email exists, we have sent a reset link."}
+
+    token = generate_password_reset_token(payload.email)
+    try:
+        send_password_reset_email(payload.email, token)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="Could not send email. Please try again later.") from exc
+
+    return {"message": "If an account with that email exists, we have sent a reset link."}
+
+
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """Reset the user's password using the token sent via email."""
+    email = verify_password_reset_token(payload.token)
+    if not email:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token.")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user or not user.is_active:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token.")
+
+    user.hashed_password = hash_password(payload.new_password)
+    db.commit()
+
+    return {"message": "Password has been successfully reset. You can now log in."}
 
 
 @router.get("/me", response_model=UserProfile)
