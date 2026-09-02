@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     otp_dev_mode: bool = False
     twilio_account_sid: str = ""
     twilio_auth_token: str = ""
+    twilio_api_key: str = ""
+    twilio_api_secret: str = ""
     twilio_from_number: str = ""
     clerk_enabled: bool = False
     clerk_jwks_url: str = "https://api.clerk.com/v1/jwks"

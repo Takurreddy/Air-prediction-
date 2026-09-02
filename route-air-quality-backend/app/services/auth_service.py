@@ -55,11 +55,22 @@ def hash_otp(phone_number: str, code: str) -> str:
 
 def send_otp_sms(phone_number: str, code: str) -> None:
     """Deliver OTP through Twilio, or log it only when explicitly in dev mode."""
-    if not all((settings.twilio_account_sid, settings.twilio_auth_token, settings.twilio_from_number)):
+    if not settings.twilio_account_sid or not settings.twilio_from_number:
         if settings.otp_dev_mode:
             log.warning("OTP dev mode: %s -> %s", phone_number, code)
             return
         raise RuntimeError("OTP delivery is not configured. Set the Twilio environment variables.")
+
+    # Use API Key if provided, otherwise fallback to Account Auth Token
+    if settings.twilio_api_key and settings.twilio_api_secret:
+        auth = (settings.twilio_api_key, settings.twilio_api_secret)
+    elif settings.twilio_auth_token:
+        auth = (settings.twilio_account_sid, settings.twilio_auth_token)
+    else:
+        if settings.otp_dev_mode:
+            log.warning("OTP dev mode: %s -> %s", phone_number, code)
+            return
+        raise RuntimeError("OTP delivery auth is missing.")
 
     response = httpx.post(
         f"https://api.twilio.com/2010-04-01/Accounts/{settings.twilio_account_sid}/Messages.json",
@@ -68,7 +79,7 @@ def send_otp_sms(phone_number: str, code: str) -> None:
             "To": phone_number,
             "Body": f"Your AirAware OTP is {code}. It expires in {settings.otp_expire_minutes} minutes.",
         },
-        auth=(settings.twilio_account_sid, settings.twilio_auth_token),
+        auth=auth,
         timeout=10.0,
     )
     response.raise_for_status()
