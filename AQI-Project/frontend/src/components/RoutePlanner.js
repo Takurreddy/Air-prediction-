@@ -559,10 +559,19 @@ export default function RoutePlanner() {
 
       {/* ── Right Main Map Area ── */}
       <div className="route-map-wrapper">
-        <MapContainer center={DEFAULT_CENTER} zoom={5} style={{ height: "100%", width: "100%" }} scrollWheelZoom={true}>
+        <MapContainer 
+          center={DEFAULT_CENTER} 
+          zoom={5} 
+          minZoom={5}
+          maxBounds={[[6.5, 68.1], [35.5, 97.4]]}
+          maxBoundsViscosity={0.8}
+          style={{ height: "100%", width: "100%" }} 
+          scrollWheelZoom={true}
+        >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            className="dark-map-tiles"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <FitBounds start={start} dest={dest} />
           <NavCameraFollow position={currentNavPos} isNavigating={isNavigating} />

@@ -278,7 +278,7 @@ function SocialShare({ station, aqi }) {
 function RealIndiaMap({ cities, selectedCity, onSelect, mapTab, translateCity, t }) {
   const center = [22.5937, 78.9629]; // center of India
   const isLight = document.documentElement.getAttribute("data-theme") === "light";
-  const tileUrl = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+  const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
   const [mouseCoords, setMouseCoords] = useState({ lat: "—", lng: "—" });
 
@@ -298,13 +298,14 @@ function RealIndiaMap({ cities, selectedCity, onSelect, mapTab, translateCity, t
         zoom={5}
         style={{ height: "100%", width: "100%", zIndex: 1 }}
         scrollWheelZoom={true}
-        maxBounds={INDIA_BOUNDS}
+        maxBounds={[[6.5, 68.1], [35.5, 97.4]]}
         maxBoundsViscosity={0.8}
-        minZoom={4}
+        minZoom={5}
       >
         <TileLayer
+          className={isLight ? "" : "dark-map-tiles"}
           url={tileUrl}
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         <GeoJSON data={INDIA_GEOJSON} style={() => geoJsonStyle} />
         <MouseCoordinates onMove={setMouseCoords} />
