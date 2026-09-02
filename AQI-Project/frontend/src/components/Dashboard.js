@@ -278,18 +278,22 @@ function SocialShare({ station, aqi }) {
 function RealIndiaMap({ cities, selectedCity, onSelect, mapTab, translateCity, t }) {
   const center = [22.5937, 78.9629]; // center of India
   const isLight = document.documentElement.getAttribute("data-theme") === "light";
-  const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+
+  const isHybrid = mapTab === "hybrid";
+  const standardTileUrl = isLight
+    ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
 
   const [mouseCoords, setMouseCoords] = useState({ lat: "—", lng: "—" });
 
   const geoJsonStyle = useMemo(() => ({
-    color: isLight ? "#64748b" : "#8b5cf6",
+    color: isHybrid ? "#38bdf8" : (isLight ? "#64748b" : "#14b8a6"),
     weight: 1.5,
-    opacity: 0.6,
-    fillColor: isLight ? "#6366f1" : "#8b5cf6",
-    fillOpacity: 0.02,
+    opacity: 0.7,
+    fillColor: isHybrid ? "#38bdf8" : (isLight ? "#6366f1" : "#14b8a6"),
+    fillOpacity: 0.03,
     dashArray: "4, 4",
-  }), [isLight]);
+  }), [isLight, isHybrid]);
 
   return (
     <>
@@ -302,11 +306,31 @@ function RealIndiaMap({ cities, selectedCity, onSelect, mapTab, translateCity, t
         maxBoundsViscosity={0.8}
         minZoom={5}
       >
-        <TileLayer
-          className={isLight ? "" : "dark-map-tiles"}
-          url={tileUrl}
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
+        {isHybrid ? (
+          <>
+            <TileLayer
+              key="hybrid-sat"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+              maxZoom={18}
+            />
+            <TileLayer
+              key="hybrid-labels"
+              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+              subdomains="abcd"
+              maxZoom={19}
+            />
+          </>
+        ) : (
+          <TileLayer
+            key={isLight ? "carto-light" : "carto-dark"}
+            url={standardTileUrl}
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
+            subdomains="abcd"
+            maxZoom={19}
+          />
+        )}
         <GeoJSON data={INDIA_GEOJSON} style={() => geoJsonStyle} />
         <MouseCoordinates onMove={setMouseCoords} />
         {cities.map(city => {

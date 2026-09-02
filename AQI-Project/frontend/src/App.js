@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 
 import Navbar from "./components/Navbar";
 import { useAuth } from "./context/AuthContext";
-import { getNearestCity } from "./config/cities";
 
 /* ── Lazy-loaded pages with code-splitting ── */
 const LandingPage  = lazy(() => import("./LandingPage"));
@@ -94,54 +93,8 @@ function PublicOnlyRoute({ children }) {
   return children;
 }
 
-function LocationPrompt({ onAllow, onClose }) {
-  const { t } = useTranslation();
-  return (
-    <div className="location-prompt">
-      <div className="location-prompt__content">
-        <div className="location-prompt__icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 20, height: 20 }}>
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" />
-          </svg>
-        </div>
-        <div>
-          <div style={{ fontWeight: 700 }}>{t('app.useLive')}</div>
-          <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-            {t('app.shareGps')}
-          </div>
-        </div>
-      </div>
-      <div className="location-prompt__actions">
-        <button className="ai-btn ai-btn--sm" onClick={onAllow}>{t('app.allowLoc')}</button>
-        <button className="location-prompt__close" onClick={onClose}>✕</button>
-      </div>
-    </div>
-  );
-}
-
 function App() {
   const [alertVisible, setAlertVisible] = useState(true);
-  const [locationPromptVisible, setLocationPromptVisible] = useState(true);
-
-  const handleAllowLocation = () => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const nearest = getNearestCity(position.coords.latitude, position.coords.longitude);
-          console.log("Location fetched:", position.coords, "Nearest:", nearest);
-          localStorage.setItem("user_city", nearest);
-          setLocationPromptVisible(false);
-          alert(`Location found! Your nearest tracked city is ${nearest}.`);
-        },
-        (error) => {
-          console.error("Location error:", error);
-          alert("Could not get location. Please check browser permissions.");
-        }
-      );
-    } else {
-      alert("Geolocation is not supported by your browser.");
-    }
-  };
 
   return (
     <BrowserRouter>
@@ -149,7 +102,6 @@ function App() {
         <Navbar />
         <OfflineBanner />
         {alertVisible && <GlobalAlertBar onClose={() => setAlertVisible(false)} />}
-        {locationPromptVisible && <LocationPrompt onAllow={handleAllowLocation} onClose={() => setLocationPromptVisible(false)} />}
         <Suspense fallback={<PageSpinner />}>
           <Routes>
             <Route path="/"              element={<LandingPage />} />
