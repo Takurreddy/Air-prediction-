@@ -7,9 +7,10 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
   updateProfile
 } from "firebase/auth";
-import runtimeConfig from "../config/runtimeConfig";
 import { doc, setDoc } from "firebase/firestore";
 /* ── Icons ── */
 const WindIcon = () => (
@@ -109,7 +110,20 @@ export default function Auth() {
     resetForm();
   }
 
-  // (reCAPTCHA removed for Twilio-based backend OTP)
+  // Step 1: Initialize reCAPTCHA for Phone Auth
+  useEffect(() => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response) => {
+          // reCAPTCHA solved
+        },
+        'expired-callback': () => {
+          setError("reCAPTCHA expired. Please try again.");
+        }
+      });
+    }
+  }, []);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -149,17 +163,9 @@ export default function Auth() {
       setLoading(true);
       try {
         if (!otpStep) {
-          const res = await fetch(`${runtimeConfig.apiBaseUrl}/auth/otp/request`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ phone_number: fullPhone })
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.detail || "Failed to request OTP.");
-          
-          if (data.dev_code) {
-            setDevCode(data.dev_code);
-          }
+          const appVerifier = window.recaptchaVerifier;
+          const confirmationResult = await signInWithPhoneNumber(auth, fullPhone, appVerifier);
+          window.confirmationResult = confirmationResult;
           setOtpStep(true);
           return;
         }
@@ -169,26 +175,18 @@ export default function Auth() {
           return;
         }
         
-        const payload = {
-          phone_number: fullPhone,
-          code: otp.trim(),
-        };
+        const result = await window.confirmationResult.confirm(otp.trim());
+        const user = result.user;
         
-        if (tab === "signup" && fullName.trim()) {
-          payload.full_name = fullName.trim();
-        }
+        // Save user to Firestore
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          phone: fullPhone,
+          displayName: fullName.trim() || "User",
+          createdAt: new Date()
+        }, { merge: true });
 
-        const res = await fetch(`${runtimeConfig.apiBaseUrl}/auth/otp/verify`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        
-        if (!res.ok) throw new Error(data.detail || "Invalid OTP.");
-
-        // We don't save to Firebase Firestore here because the backend handles the user DB.
-        login(data.access_token, { phone_number: fullPhone, full_name: fullName.trim() || null });
+        login(user.accessToken, { phone_number: fullPhone, full_name: fullName.trim() || null });
         navigate("/dashboard");
       } catch (err) {
         setError(err.message || "Could not complete phone sign in.");
@@ -257,7 +255,8 @@ export default function Auth() {
     >
       <form onSubmit={handleSubmit} style={{ width: "100%" }}>
 
-        {/* reCAPTCHA removed */}
+        {/* Firebase reCAPTCHA Container */}
+        <div id="recaptcha-container"></div>
 
         {/* Full name — signup only */}
         {tab === "signup" && (
