@@ -148,7 +148,9 @@ const createCustomIcon = (aqi, isSelected) => {
 
   const html = `
     <div class="aqi-marker-dot${isSelected ? ' aqi-marker-dot--selected' : ''}" style="
-      background-color: ${color};
+      background-color: ${color}90; /* translucent */
+      backdrop-filter: blur(8px) saturate(150%);
+      -webkit-backdrop-filter: blur(8px) saturate(150%);
       width: ${size}px;
       height: ${size}px;
       border-radius: 50%;
@@ -159,9 +161,10 @@ const createCustomIcon = (aqi, isSelected) => {
       color: #fff;
       font-weight: 700;
       font-size: ${fontSize}px;
-      opacity: 0.9;
+      opacity: 1;
       animation: pulse-marker 2s ease-in-out infinite;
-      box-shadow: 0 0 12px ${color}60;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2), inset 0 2px 4px rgba(255,255,255,0.3);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     ">
       ${aqi}
     </div>

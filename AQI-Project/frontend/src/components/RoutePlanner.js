@@ -112,14 +112,16 @@ function createNavVehicleIcon(angle = 0) {
     html: `
       <div style="
         width: 40px; height: 40px; border-radius: 50%;
-        background: linear-gradient(135deg, #0d9488, #0284c7);
-        border: 3px solid #ffffff;
-        box-shadow: 0 0 18px rgba(13,148,136,0.85), 0 6px 16px rgba(0,0,0,0.5);
+        background: linear-gradient(135deg, rgba(13,148,136,0.7), rgba(2,132,199,0.7));
+        backdrop-filter: blur(8px) saturate(150%);
+        -webkit-backdrop-filter: blur(8px) saturate(150%);
+        border: 2px solid rgba(255,255,255,0.4);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.3);
         display: flex; align-items: center; justify-content: center;
         transform: rotate(${angle}deg);
         transition: transform 100ms linear;
       ">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="white">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="white" style="filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));">
           <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
         </svg>
       </div>
@@ -195,22 +197,26 @@ export default function RoutePlanner() {
     const name = e.target.value;
     setStartCityName(name);
     const c = CITIES.find(city => city.name === name);
-    setStart(c ? { lat: c.lat, lng: c.lng } : null);
+    const newStart = c ? { lat: c.lat, lng: c.lng } : null;
+    setStart(newStart);
     setIsNavigating(false);
     setNavIndex(0);
+    if (newStart && dest) findRoute(newStart, dest);
   }
 
   function handleDestChange(e) {
     const name = e.target.value;
     setDestCityName(name);
     const c = CITIES.find(city => city.name === name);
-    setDest(c ? { lat: c.lat, lng: c.lng } : null);
+    const newDest = c ? { lat: c.lat, lng: c.lng } : null;
+    setDest(newDest);
     setIsNavigating(false);
     setNavIndex(0);
+    if (start && newDest) findRoute(start, newDest);
   }
 
-  const findRoute = async () => {
-    if (!start || !dest) {
+  const findRoute = async (source = start, destination = dest) => {
+    if (!source || !destination) {
       setRouteError("Please select both source and destination cities.");
       return;
     }
@@ -221,10 +227,10 @@ export default function RoutePlanner() {
       setNavIndex(0);
 
       const res = await evaluateRoutes({
-        origin_lat: start.lat,
-        origin_lon: start.lng,
-        dest_lat: dest.lat,
-        dest_lon: dest.lng,
+        origin_lat: source.lat,
+        origin_lon: source.lng,
+        dest_lat: destination.lat,
+        dest_lon: destination.lng,
         alternatives: 3,
         use_predictions: true,
       });
@@ -249,12 +255,49 @@ export default function RoutePlanner() {
     }
   };
 
-  // Auto-calculate route when start/dest changes
-  useEffect(() => {
-    if (start && dest) {
-      findRoute();
+  // Removed useEffect so route is only calculated when city explicitly selected or button clicked.
+
+  const handleLocateMe = () => {
+    if (!navigator.geolocation) {
+      setRouteError("Geolocation is not supported by your browser");
+      return;
     }
-  }, [start, dest]); // eslint-disable-line react-hooks/exhaustive-deps
+    setLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const toRad = (value) => (value * Math.PI) / 180;
+        let minDistance = Infinity;
+        let closest = null;
+        const R = 6371;
+        for (const city of CITIES) {
+          if (!city.lat || !city.lng) continue;
+          const dLat = toRad(city.lat - latitude);
+          const dLng = toRad(city.lng - longitude);
+          const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(toRad(latitude)) * Math.cos(toRad(city.lat)) *
+                    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          const distance = R * c;
+          if (distance < minDistance) {
+            minDistance = distance;
+            closest = city;
+          }
+        }
+        if (closest) {
+          setStartCityName(closest.name);
+          const newStart = { lat: closest.lat, lng: closest.lng };
+          setStart(newStart);
+          if (newStart && dest) findRoute(newStart, dest);
+        }
+        setLoading(false);
+      },
+      (err) => {
+        setRouteError("Unable to retrieve your location.");
+        setLoading(false);
+      }
+    );
+  };
 
   function clearAll() {
     setStart(null); setDest(null); setStartCityName(""); setDestCityName("");
@@ -357,7 +400,12 @@ export default function RoutePlanner() {
           <div className="route-inputs" style={{ gridTemplateColumns: "1fr auto 1fr", gap: 10 }}>
             {/* Source */}
             <div className="route-col">
-              <label>{t('route.source')}</label>
+              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                {t('route.source')}
+                <button type="button" onClick={handleLocateMe} className="ai-btn ai-btn--ghost ai-btn--sm" style={{ padding: '0 6px', height: 'auto', fontSize: '10px' }} title="Current Location">
+                  📍 Locate Me
+                </button>
+              </label>
               <select className="ai-select" value={startCityName} onChange={handleStartChange}>
                 <option value="">Select Origin...</option>
                 {CITIES.map(c => <option key={c.name} value={c.name}>{translateCity(c.name)}</option>)}
