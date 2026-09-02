@@ -164,10 +164,12 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
         return {"message": "If an account with that email exists, we have sent a reset link."}
     if not user.is_active:
         return {"message": "If an account with that email exists, we have sent a reset link."}
+    if not user.email:
+        return {"message": "If an account with that email exists, we have sent a reset link."}
 
-    token = generate_password_reset_token(payload.email)
+    token = generate_password_reset_token(user.email)
     try:
-        send_password_reset_email(payload.email, token)
+        send_password_reset_email(user.email, token)
     except Exception as exc:
         raise HTTPException(status_code=500, detail="Could not send email. Please try again later.") from exc
 
