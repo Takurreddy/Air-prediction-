@@ -5,12 +5,12 @@
 
 .lp {
   font-family: "Inter", "Segoe UI", Arial, sans-serif;
-  color: #dce6f0;
+  color: #e2eaf4;
   background:
-    radial-gradient(ellipse 55% 38% at 12% 8%,  rgba(13,148,136,.14) 0%, transparent 58%),
-    radial-gradient(ellipse 45% 32% at 88% 6%,  rgba(2,132,199,.10)  0%, transparent 52%),
-    radial-gradient(ellipse 38% 28% at 50% 96%, rgba(217,119,6,.08)   0%, transparent 52%),
-    linear-gradient(180deg, #0c1014 0%, #111418 100%);
+    radial-gradient(ellipse 55% 38% at 12% 8%,  rgba(13,148,136,.12) 0%, transparent 58%),
+    radial-gradient(ellipse 45% 32% at 88% 6%,  rgba(2,132,199,.08)  0%, transparent 52%),
+    radial-gradient(ellipse 38% 28% at 50% 96%, rgba(56,189,248,.05)  0%, transparent 52%),
+    linear-gradient(180deg, #080b10 0%, #0b0e13 100%);
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -86,10 +86,28 @@
 .lp-hero__visual { will-change: transform; }
 
 .lp-aqi-card {
-  background: rgba(24,28,34,.82); border: 1px solid rgba(13,148,136,.25);
-  border-radius: 18px; padding: 26px;
-  box-shadow: 0 20px 50px rgba(0,0,0,.55), inset 0 0 0 1px rgba(13,148,136,.07);
-  backdrop-filter: blur(18px);
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 22px; padding: 28px;
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.5),
+    0 0 30px rgba(13,148,136,.06),
+    inset 0 1px 0 rgba(255,255,255,.08);
+  animation: heroCardFloat 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: border-color 300ms, box-shadow 300ms;
+}
+.lp-aqi-card:hover {
+  border-color: rgba(20,184,166,.25);
+  box-shadow:
+    0 28px 70px rgba(0,0,0,.55),
+    0 0 40px rgba(13,148,136,.1),
+    inset 0 1px 0 rgba(255,255,255,.12);
+}
+@keyframes heroCardFloat {
+  0%   { opacity: 0; transform: translateY(30px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 .lp-aqi-card__header {
   display: flex; justify-content: space-between; align-items: center;
@@ -149,13 +167,18 @@
 .lp-how__steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
 
 .lp-how__step {
-  background: rgba(30,36,45,.75); border: 1px solid rgba(100,140,180,.18);
-  border-radius: 16px; padding: 28px 24px; backdrop-filter: blur(12px);
-  transition: transform 180ms, border-color 180ms, box-shadow 180ms;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px; padding: 28px 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.06);
+  transition: transform 300ms cubic-bezier(.16,1,.3,1), border-color 300ms, box-shadow 300ms;
 }
 .lp-how__step:hover {
-  transform: translateY(-4px); border-color: rgba(13,148,136,.38);
-  box-shadow: 0 24px 44px rgba(0,0,0,.45);
+  transform: translateY(-6px);
+  border-color: rgba(20,184,166,.35);
+  box-shadow: 0 24px 50px rgba(0,0,0,.45), 0 0 25px rgba(13,148,136,.1), inset 0 1px 0 rgba(255,255,255,.1);
 }
 
 .lp-how__icon {
@@ -233,8 +256,11 @@
    STATS BAR
    ════════════════════════════════════════ */
 .lp-stats-bar {
-  border-top: 1px solid rgba(100,140,180,.15); border-bottom: 1px solid rgba(100,140,180,.15);
-  background: rgba(18,22,28,.6); backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(255,255,255,.06); border-bottom: 1px solid rgba(255,255,255,.06);
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
 }
 .lp-stats-bar__inner {
   max-width: 1140px; margin: 0 auto; padding: 34px 32px;
@@ -253,11 +279,21 @@
 .lp-arch__pipeline { display: flex; align-items: stretch; overflow-x: auto; padding-bottom: 6px; }
 .arch-step-wrap    { display: flex; align-items: center; flex: 1; min-width: 155px; }
 .arch-step {
-  flex: 1; background: rgba(30,36,45,.75); border: 1px solid rgba(100,140,180,.18);
-  border-radius: 16px; padding: 26px 20px; backdrop-filter: blur(10px);
-  transition: border-color 180ms, transform 180ms; box-sizing: border-box;
+  flex: 1;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px; padding: 26px 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.06);
+  transition: border-color 300ms, transform 300ms cubic-bezier(.16,1,.3,1), box-shadow 300ms;
+  box-sizing: border-box;
 }
-.arch-step:hover { border-color: rgba(13,148,136,.38); transform: translateY(-3px); }
+.arch-step:hover {
+  border-color: rgba(20,184,166,.35);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 45px rgba(0,0,0,.45), 0 0 20px rgba(13,148,136,.08), inset 0 1px 0 rgba(255,255,255,.1);
+}
 
 .arch-step__tag {
   display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .12em;
@@ -273,7 +309,9 @@
    ════════════════════════════════════════ */
 .lp-cta {
   text-align: center; padding: 96px 32px;
-  background: radial-gradient(ellipse 58% 48% at 50% 50%, rgba(13,148,136,.09) 0%, transparent 68%);
+  background:
+    radial-gradient(ellipse 58% 48% at 50% 50%, rgba(13,148,136,.1) 0%, transparent 68%),
+    radial-gradient(ellipse 30% 25% at 50% 50%, rgba(56,189,248,.04) 0%, transparent 45%);
 }
 .lp-cta h2        { margin: 0 0 10px; font-size: clamp(26px,4vw,46px); font-weight: 800; }
 .lp-cta__lead     { margin: 0 0 9px; font-size: 18px; color: #dce6f0; }
@@ -284,8 +322,11 @@
    FOOTER
    ════════════════════════════════════════ */
 .lp-footer {
-  border-top: 1px solid rgba(100,140,180,.15);
-  padding: 52px 32px 28px; background: rgba(10,13,16,.7);
+  border-top: 1px solid rgba(255,255,255,.06);
+  padding: 52px 32px 28px;
+  background: rgba(8, 11, 16, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 .lp-footer__inner {
   max-width: 1140px; margin: 0 auto 36px;
@@ -696,15 +737,19 @@
   gap: 16px;
 }
 .lp-suite-card {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-mid);
-  border-radius: 16px;
-  padding: 20px;
-  transition: transform 180ms, border-color 180ms;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 22px;
+  padding: 26px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s, border-color 0.35s;
 }
 .lp-suite-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--purple-bright);
+  transform: translateY(-8px);
+  border-color: rgba(20, 184, 166, 0.35);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.45), 0 0 30px rgba(13,148,136,.1), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 .lp-suite-card--wide {
   grid-column: span 2;
@@ -759,11 +804,20 @@
   gap: 20px;
 }
 .lp-wf-step {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-mid);
-  border-radius: 16px;
-  padding: 24px;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 22px;
+  padding: 26px;
   text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: transform 0.35s cubic-bezier(.16,1,.3,1), border-color 0.35s, box-shadow 0.35s;
+}
+.lp-wf-step:hover {
+  transform: translateY(-6px);
+  border-color: rgba(20, 184, 166, 0.35);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45), 0 0 20px rgba(13,148,136,.08), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 .lp-wf-icon {
   font-size: 28px;
@@ -781,12 +835,17 @@
 
 /* CTA Card Banner */
 .lp-cta-card {
-  background: linear-gradient(135deg, #0f1225 0%, #171b36 100%);
-  border: 1px solid var(--purple-glow);
-  border-radius: 24px;
-  padding: 56px 32px;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(20, 184, 166, 0.15);
+  border-radius: 28px;
+  padding: 60px 32px;
   text-align: center;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px var(--purple-dim);
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.5),
+    0 0 50px rgba(13,148,136,.06),
+    inset 0 1px 0 rgba(255,255,255,.08);
 }
 .lp-cta-card h2 {
   font-size: 36px;
