@@ -787,15 +787,172 @@ body {
 .auth-mode-btn:hover { border-color: var(--teal-lt); color: var(--text-main); }
 .auth-mode-btn--active { background: var(--teal); border-color: var(--teal); color: #fff; }
 
-/* ── Indian phone country code prefix ── */
-.auth-field__country-code {
-  position: absolute; left: 36px; top: 50%; transform: translateY(-50%);
-  font-size: 13px; font-weight: 600; color: var(--text-main);
-  pointer-events: none; user-select: none;
+/* ── Country code dropdown & phone input ── */
+.auth-phone-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  width: 100%;
 }
-.auth-field input[type="tel"] {
-  padding-left: 72px; /* extra space for "+91" prefix */
-  letter-spacing: 0.04em;
+.auth-country-selector {
+  position: relative;
+}
+.auth-country-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  transition: all 200ms ease;
+  white-space: nowrap;
+}
+.auth-country-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--teal-lt);
+}
+.auth-country-flag {
+  font-size: 16px;
+}
+.auth-country-arrow {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.auth-country-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 220px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.5), 0 0 20px rgba(13,148,136,0.1);
+  padding: 6px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: countryDropdownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes countryDropdownFade {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.auth-country-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 150ms;
+}
+.auth-country-option:hover {
+  background: rgba(20, 184, 166, 0.15);
+  color: var(--teal-lt);
+}
+.auth-country-option.active {
+  background: rgba(20, 184, 166, 0.25);
+  color: #fff;
+  font-weight: 700;
+}
+.auth-country-label {
+  flex: 1;
+}
+.auth-country-code {
+  color: var(--teal-lt);
+  font-weight: 600;
+}
+
+/* ── Pollutant Grid HUD ── */
+.pollutant-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 14px 0;
+}
+.pollutant-grid__item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: all 200ms ease;
+}
+.pollutant-grid__item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(20, 184, 166, 0.3);
+  transform: translateY(-1px);
+}
+.pollutant-grid__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.pollutant-grid__value {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+/* ── Live User GPS Pulse Marker ── */
+.user-gps-pulse-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.user-gps-dot {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+}
+.user-gps-core {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  border: 2.5px solid #fff;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.6);
+  z-index: 2;
+}
+.user-gps-pulse {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(14, 165, 233, 0.35);
+  animation: gpsRadarWave 2s ease-out infinite;
+  z-index: 1;
+}
+@keyframes gpsRadarWave {
+  0%   { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
 }
 .auth-field { width: 100%; margin-bottom: 14px; }
 .auth-field label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); }

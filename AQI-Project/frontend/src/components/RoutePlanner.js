@@ -263,39 +263,38 @@ export default function RoutePlanner() {
       return;
     }
     setLoading(true);
+    setRouteError("");
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const toRad = (value) => (value * Math.PI) / 180;
-        let minDistance = Infinity;
-        let closest = null;
-        const R = 6371;
-        for (const city of CITIES) {
-          if (!city.lat || !city.lng) continue;
-          const dLat = toRad(city.lat - latitude);
-          const dLng = toRad(city.lng - longitude);
-          const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                    Math.cos(toRad(latitude)) * Math.cos(toRad(city.lat)) *
-                    Math.sin(dLng / 2) * Math.sin(dLng / 2);
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-          const distance = R * c;
-          if (distance < minDistance) {
-            minDistance = distance;
-            closest = city;
-          }
-        }
-        if (closest) {
-          setStartCityName(closest.name);
-          const newStart = { lat: closest.lat, lng: closest.lng };
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          let exactName = "My Location";
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=16&addressdetails=1`
+            );
+            if (res.ok) {
+              const geo = await res.json();
+              const a = geo.address || {};
+              exactName = a.suburb || a.neighbourhood || a.residential || a.village || a.town || a.city_district || a.city || "My Location";
+            }
+          } catch { /* fallback */ }
+
+          const newStart = { name: exactName, lat: latitude, lng: longitude, isGps: true };
           setStart(newStart);
-          if (newStart && dest) findRoute(newStart, dest);
+          setStartCityName(exactName);
+          if (dest) findRoute(newStart, dest);
+        } catch {
+          setRouteError("Failed to resolve exact GPS coordinates.");
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       },
       (err) => {
-        setRouteError("Unable to retrieve your location.");
+        setRouteError("Unable to retrieve your location. Please check browser permissions.");
         setLoading(false);
-      }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
 
@@ -408,6 +407,9 @@ export default function RoutePlanner() {
               </label>
               <select className="ai-select" value={startCityName} onChange={handleStartChange}>
                 <option value="">Select Origin...</option>
+                {start?.isGps && (
+                  <option value={startCityName}>📍 {startCityName} (Exact GPS)</option>
+                )}
                 {CITIES.map(c => <option key={c.name} value={c.name}>{translateCity(c.name)}</option>)}
               </select>
             </div>
@@ -569,10 +571,9 @@ export default function RoutePlanner() {
           scrollWheelZoom={true}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            subdomains="abcd"
-            maxZoom={19}
+            attribution='&copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+            maxZoom={18}
           />
           <FitBounds start={start} dest={dest} />
           <NavCameraFollow position={currentNavPos} isNavigating={isNavigating} />

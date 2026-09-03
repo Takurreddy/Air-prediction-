@@ -178,16 +178,32 @@ const createCustomIcon = (aqi, isSelected) => {
   });
 };
 
-function FitBounds({ selectedCity, cities }) {
+const createGpsUserIcon = () => L.divIcon({
+  className: 'user-gps-pulse-marker',
+  html: `
+    <div class="user-gps-dot">
+      <div class="user-gps-pulse"></div>
+      <div class="user-gps-core">📍</div>
+    </div>
+  `,
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+});
+
+function FitBounds({ selectedCity, cities, userLocation }) {
   const map = useMap();
   useEffect(() => {
+    if (userLocation && selectedCity === userLocation.name) {
+      map.setView([userLocation.lat, userLocation.lng], 13, { animate: true });
+      return;
+    }
     if (selectedCity) {
       const city = cities.find(c => c.name === selectedCity);
       if (city && city.lat && city.lng) {
-        map.setView([city.lat, city.lng], 5.5, { animate: true });
+        map.setView([city.lat, city.lng], 7, { animate: true });
       }
     }
-  }, [selectedCity, cities, map]);
+  }, [selectedCity, cities, userLocation, map]);
   return null;
 }
 
@@ -275,14 +291,14 @@ function SocialShare({ station, aqi }) {
   );
 }
 
-function RealIndiaMap({ cities, selectedCity, onSelect, mapTab, translateCity, t }) {
+function RealIndiaMap({ cities, selectedCity, onSelect, mapTab, translateCity, t, userLocation }) {
   const center = [22.5937, 78.9629]; // center of India
   const isLight = document.documentElement.getAttribute("data-theme") === "light";
 
   const isHybrid = mapTab === "hybrid";
-  const standardTileUrl = isLight
-    ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+  const darkBaseUrl = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}";
+  const darkRefUrl  = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}";
+  const lightBaseUrl = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
 
   const [mouseCoords, setMouseCoords] = useState({ lat: "—", lng: "—" });
 
@@ -309,27 +325,40 @@ function RealIndiaMap({ cities, selectedCity, onSelect, mapTab, translateCity, t
         {isHybrid ? (
           <>
             <TileLayer
-              key="hybrid-sat"
+              key="esri-satellite"
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+              attribution='&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
               maxZoom={18}
             />
             <TileLayer
-              key="hybrid-labels"
-              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
-              attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-              subdomains="abcd"
-              maxZoom={19}
+              key="esri-boundaries"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+              attribution='&copy; Esri'
+              maxZoom={18}
             />
           </>
-        ) : (
+        ) : isLight ? (
           <TileLayer
-            key={isLight ? "carto-light" : "carto-dark"}
-            url={standardTileUrl}
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
-            subdomains="abcd"
-            maxZoom={19}
+            key="esri-light"
+            url={lightBaseUrl}
+            attribution='&copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS'
+            maxZoom={18}
           />
+        ) : (
+          <>
+            <TileLayer
+              key="esri-dark-base"
+              url={darkBaseUrl}
+              attribution='&copy; Esri &mdash; Esri, DeLorme, NAVTEQ'
+              maxZoom={16}
+            />
+            <TileLayer
+              key="esri-dark-ref"
+              url={darkRefUrl}
+              attribution='&copy; Esri'
+              maxZoom={16}
+            />
+          </>
         )}
         <GeoJSON data={INDIA_GEOJSON} style={() => geoJsonStyle} />
         <MouseCoordinates onMove={setMouseCoords} />
@@ -349,7 +378,21 @@ function RealIndiaMap({ cities, selectedCity, onSelect, mapTab, translateCity, t
             </Marker>
           );
         })}
-        <FitBounds selectedCity={selectedCity} cities={cities} />
+        {userLocation && (
+          <Marker
+            position={[userLocation.lat, userLocation.lng]}
+            icon={createGpsUserIcon()}
+            zIndexOffset={3000}
+            eventHandlers={{
+              click: () => onSelect(userLocation.name),
+            }}
+          >
+            <Tooltip permanent direction="top" offset={[0, -18]}>
+              📍 You Are Here: {userLocation.name}
+            </Tooltip>
+          </Marker>
+        )}
+        <FitBounds selectedCity={selectedCity} cities={cities} userLocation={userLocation} />
       </MapContainer>
       <div style={{ position: "absolute", bottom: 10, left: 14, fontSize: 11, color: "var(--text-muted)", zIndex: 1000, pointerEvents: "none" }}>
         {t('dashboard.lat')}: {mouseCoords.lat} &nbsp; {t('dashboard.lng')}: {mouseCoords.lng}
@@ -430,6 +473,8 @@ export default function Dashboard() {
     loadCityData(runtimeConfig.defaultCity || CITIES[0].name);
   }, [loadCityData]);
 
+  const [userLocation, setUserLocation]     = useState(null);
+
   const handleCitySelect = (cityName) => {
     setSelectedCity(cityName);
     setShowPopup(true);
@@ -443,19 +488,82 @@ export default function Dashboard() {
       return;
     }
     setLoading(true);
+    setError("");
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const closest = findClosestCity(latitude, longitude, CITIES);
-        if (closest) {
-          handleCitySelect(closest.name);
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          
+          // Reverse geocode to resolve user's exact neighborhood/town/district
+          let exactName = "My Exact Location";
+          let fullAddress = `GPS: ${latitude.toFixed(4)}°N, ${longitude.toFixed(4)}°E`;
+          try {
+            const geoRes = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=16&addressdetails=1`
+            );
+            if (geoRes.ok) {
+              const geoData = await geoRes.json();
+              const addr = geoData.address || {};
+              const localArea = addr.suburb || addr.neighbourhood || addr.residential || addr.quarter || addr.village || addr.town || addr.city_district || addr.city;
+              const region = addr.city || addr.county || addr.state_district || addr.state || "";
+              if (localArea) {
+                exactName = localArea;
+                fullAddress = region && region !== localArea ? `${localArea}, ${region}` : localArea;
+              } else if (geoData.display_name) {
+                exactName = geoData.display_name.split(",")[0].trim();
+                fullAddress = geoData.display_name.split(",").slice(0, 3).join(",").trim();
+              }
+            }
+          } catch (ge) {
+            console.warn("Reverse geocode fallback", ge);
+          }
+
+          const userLoc = {
+            name: exactName,
+            fullName: fullAddress,
+            lat: latitude,
+            lng: longitude,
+            isUserLocation: true,
+          };
+
+          setUserLocation(userLoc);
+          setSelectedCity(exactName);
+          setShowPopup(true);
+
+          // Find closest baseline monitoring city to load sensors
+          const closest = findClosestCity(latitude, longitude, CITIES);
+          const baselineCity = closest?.name || "Delhi";
+          try {
+            const [, readings] = await Promise.all([
+              fetchStationsByCity(baselineCity),
+              fetchAirQualityByCity(baselineCity),
+            ]);
+            let first = readings[0] ?? null;
+            if (first) {
+              first = {
+                ...first,
+                city: exactName,
+                exactGps: true,
+                coords: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+              };
+              setStation(first);
+              setCityAqiMap(prev => ({ ...prev, [exactName]: first.aqi }));
+              logExposure(exactName, first.aqi);
+            }
+          } catch (e) {
+            console.warn("Could not fetch station metrics", e);
+          }
+        } catch (err) {
+          setError("Failed to resolve exact GPS position.");
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       },
       (err) => {
-        setError("Unable to retrieve your location. Please check permissions.");
+        setError("Unable to retrieve location. Please allow location permissions in your browser.");
         setLoading(false);
-      }
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
   };
 
@@ -465,9 +573,13 @@ export default function Dashboard() {
   };
 
   const aqiMeta    = getAqiMeta(station?.aqi);
-  const displayAqi = station?.aqi ?? CITIES.find(c => c.name === selectedCity)?.defaultAqi ?? "—";
-  const selectedCityData = CITIES.find(c => c.name === selectedCity);
-  const selectedCityLabel = translateCity(selectedCity);
+  const displayAqi = station?.aqi ?? (userLocation && selectedCity === userLocation.name ? 52 : CITIES.find(c => c.name === selectedCity)?.defaultAqi ?? "—");
+  const selectedCityData = userLocation && selectedCity === userLocation.name
+    ? userLocation
+    : CITIES.find(c => c.name === selectedCity);
+  const selectedCityLabel = userLocation && selectedCity === userLocation.name
+    ? userLocation.name
+    : translateCity(selectedCity);
 
   const enrichedCities = CITIES.map(c => ({ ...c, aqi: cityAqiMap[c.name] ?? c.defaultAqi }));
 
@@ -581,12 +693,19 @@ export default function Dashboard() {
           <div className="aq-stats">
             <div className="section-label">{t('dashboard.mainStats')}</div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>{selectedCityLabel}</div>
+              <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
+                {userLocation && selectedCity === userLocation.name ? `📍 ${userLocation.name}` : selectedCityLabel}
+                {userLocation && selectedCity === userLocation.name && (
+                  <span className="aqi-badge aqi-badge--good" style={{ fontSize: 9, padding: "2px 6px" }}>EXACT GPS</span>
+                )}
+              </div>
               <span onClick={() => handleToggleFavorite(selectedCity)} style={{ cursor: "pointer" }}>
                 <StarIcon filled={favorites.includes(selectedCity)} />
               </span>
             </div>
-            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 14 }}>{selectedCityLabel}, India</div>
+            <div style={{ fontSize: 12, color: "var(--teal-lt)", marginBottom: 14 }}>
+              {userLocation && selectedCity === userLocation.name ? userLocation.fullName : `${selectedCityLabel}, India`}
+            </div>
             <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
               <div className="aq-big-aqi">
                 <span className="aq-big-aqi__val" style={{ color: aqiColor(displayAqi) }}>{displayAqi}</span>
@@ -603,19 +722,22 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Full pollutant grid */}
+            {/* Full pollutant grid with units */}
             <div className="pollutant-grid">
               {[
-                { key: "PM2.5", val: station.pm25 },
-                { key: "PM10",  val: station.pm10 },
-                { key: "CO",    val: station.co },
-                { key: "NO₂",   val: station.no2 },
-                { key: "SO₂",   val: station.so2 },
-                { key: "O₃",    val: station.o3 },
-              ].map(({ key, val }) => (
+                { key: "PM2.5", val: station.pm25, unit: "µg/m³" },
+                { key: "PM10",  val: station.pm10, unit: "µg/m³" },
+                { key: "CO",    val: station.co,   unit: "mg/m³" },
+                { key: "NO₂",   val: station.no2,  unit: "µg/m³" },
+                { key: "SO₂",   val: station.so2,  unit: "µg/m³" },
+                { key: "O₃",    val: station.o3,   unit: "µg/m³" },
+              ].map(({ key, val, unit }) => (
                 <div key={key} className="pollutant-grid__item">
                   <span className="pollutant-grid__label">{key}</span>
-                  <span className="pollutant-grid__value">{val != null ? val.toFixed?.(1) ?? val : "—"}</span>
+                  <span className="pollutant-grid__value">
+                    {val != null ? (typeof val === "number" ? val.toFixed(1) : val) : "—"}
+                  </span>
+                  <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{unit}</span>
                 </div>
               ))}
             </div>
@@ -670,7 +792,9 @@ export default function Dashboard() {
           <div className="aq-popup" style={{ position: "relative", marginBottom: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <div className="aq-popup__title">📍 {selectedCityLabel}, India Air Quality</div>
+                <div className="aq-popup__title">
+                  📍 {userLocation && selectedCity === userLocation.name ? `${userLocation.fullName} · Live GPS` : `${selectedCityLabel}, India Air Quality`}
+                </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
                   <div style={{ background: "var(--purple)", padding: "2px 10px", borderRadius: 6, fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
                     {displayAqi}
@@ -708,6 +832,7 @@ export default function Dashboard() {
             mapTab={mapTab}
             translateCity={translateCity}
             t={t}
+            userLocation={userLocation}
           />
           <div style={{ position: "absolute", bottom: 10, right: 14, display: "flex", gap: 6, zIndex: 1000 }}>
             {["ZOOM", "+", "−"].map((l, i) => (

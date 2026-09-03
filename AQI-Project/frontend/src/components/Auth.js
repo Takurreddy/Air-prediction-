@@ -32,6 +32,22 @@ const UserIcon = () => (
   </svg>
 );
 
+const PhoneIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    style={{ width: 16, height: 16 }}>
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+  </svg>
+);
+
+const COUNTRIES = [
+  { code: "+91", label: "India", flag: "🇮🇳" },
+  { code: "+1",  label: "USA / Canada", flag: "🇺🇸" },
+  { code: "+44", label: "UK", flag: "🇬🇧" },
+  { code: "+971", label: "UAE", flag: "🇦🇪" },
+  { code: "+65", label: "Singapore", flag: "🇸🇬" },
+  { code: "+61", label: "Australia", flag: "🇦🇺" },
+];
+
 /* ── Card shell ── */
 function AuthCard({ tab, setTab, children, onGuest }) {
   return (
@@ -90,10 +106,10 @@ export default function Auth() {
   const [email,     setEmail]     = useState("");
   const [phone,     setPhone]     = useState("");
   const [countryCode, setCountryCode] = useState("+91");
+  const [showCountryMenu, setShowCountryMenu] = useState(false);
   const [otp,       setOtp]       = useState("");
   const [authMethod, setAuthMethod] = useState("email");
   const [otpStep,   setOtpStep]   = useState(false);
-  const [devCode,   setDevCode]   = useState("");
   const [password,  setPassword]  = useState("");
   const [fullName,  setFullName]  = useState("");
   const [loading,   setLoading]   = useState(false);
@@ -105,7 +121,6 @@ export default function Auth() {
     setPhone("");
     setOtp("");
     setOtpStep(false);
-    setDevCode("");
     setPassword("");
     setFullName("");
     setError("");
@@ -162,9 +177,6 @@ export default function Auth() {
           const data = await res.json();
           if (!res.ok) throw new Error(data.detail || "Failed to request OTP.");
           
-          if (data.dev_code) {
-            setDevCode(data.dev_code);
-          }
           setOtpStep(true);
           return;
         }
@@ -313,20 +325,52 @@ export default function Auth() {
             )}
             <div className="auth-field">
               <label>Phone Number</label>
-              <div className="auth-field__row" style={{ paddingLeft: 0 }}>
-                <span className="auth-field__icon" style={{ paddingLeft: '12px', paddingRight: '8px' }}><UserIcon /></span>
-                <select
-                  value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                  disabled={otpStep}
-                  style={{ border: 'none', background: 'transparent', outline: 'none', color: 'var(--text-main)', borderRight: '1px solid var(--border)', paddingRight: '4px', cursor: 'pointer' }}
-                >
-                  <option value="+91">+91</option>
-                  <option value="+1">+1</option>
-                  <option value="+44">+44</option>
-                </select>
-                <input type="tel" placeholder="98765 43210" value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} autoComplete="tel" disabled={otpStep} style={{ paddingLeft: '8px' }} />
+              <div className="auth-phone-wrap">
+                {/* Custom Glassmorphism Country Code Selector */}
+                <div className="auth-country-selector">
+                  <button
+                    type="button"
+                    className="auth-country-btn"
+                    disabled={otpStep}
+                    onClick={() => setShowCountryMenu(prev => !prev)}
+                  >
+                    <span className="auth-country-flag">{COUNTRIES.find(c => c.code === countryCode)?.flag || "🇮🇳"}</span>
+                    <span className="auth-country-code">{countryCode}</span>
+                    <span className="auth-country-arrow">▾</span>
+                  </button>
+
+                  {showCountryMenu && !otpStep && (
+                    <div className="auth-country-menu">
+                      {COUNTRIES.map(c => (
+                        <div
+                          key={c.code}
+                          className={`auth-country-option${c.code === countryCode ? " active" : ""}`}
+                          onClick={() => {
+                            setCountryCode(c.code);
+                            setShowCountryMenu(false);
+                          }}
+                        >
+                          <span className="auth-country-flag">{c.flag}</span>
+                          <span className="auth-country-label">{c.label}</span>
+                          <span className="auth-country-code">{c.code}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Phone Input with PhoneIcon */}
+                <div className="auth-field__row" style={{ flex: 1 }}>
+                  <span className="auth-field__icon"><PhoneIcon /></span>
+                  <input
+                    type="tel"
+                    placeholder="98765 43210"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                    autoComplete="tel"
+                    disabled={otpStep}
+                  />
+                </div>
               </div>
             </div>
             {otpStep && (
@@ -334,11 +378,17 @@ export default function Auth() {
                 <label>One-Time Password</label>
                 <div className="auth-field__row">
                   <span className="auth-field__icon"><LockIcon /></span>
-                  <input type="text" inputMode="numeric" maxLength={6} placeholder="Enter 6-digit OTP"
-                    value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                    autoComplete="one-time-code" autoFocus />
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder="Enter 6-digit OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                    autoComplete="one-time-code"
+                    autoFocus
+                  />
                 </div>
-                {devCode && <small className="auth-help">Development OTP: {devCode}</small>}
               </div>
             )}
           </>

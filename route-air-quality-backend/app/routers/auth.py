@@ -67,9 +67,7 @@ def request_otp(payload: OtpRequest, db: Session = Depends(get_db)):
         "message": "OTP sent to your phone number.",
         "expires_in": settings.otp_expire_minutes * 60,
     }
-    # Return the code if Twilio is not configured so the user can still log in
-    twilio_configured = bool(settings.twilio_account_sid and settings.twilio_from_number)
-    if settings.otp_dev_mode or not twilio_configured:
+    if settings.otp_dev_mode:
         response["dev_code"] = code
     return response
 
