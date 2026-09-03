@@ -190,8 +190,9 @@ export default function RoutePlanner() {
   // Navigation simulation states
   const [isNavigating, setIsNavigating] = useState(false);
   const [navIndex, setNavIndex]         = useState(0);
-  const [speed, setSpeed]               = useState(1); // 1x, 2x, 4x
+  const [speed, setSpeed]                       = useState(1); // 1x, 2x, 4x
   const [selectedRouteIdx, setSelectedRouteIdx] = useState(1); // Default to eco alternative
+  const [mapStyle, setMapStyle]                 = useState("street"); // "street" | "satellite" | "dark"
 
   function handleStartChange(e) {
     const name = e.target.value;
@@ -560,7 +561,59 @@ export default function RoutePlanner() {
       </div>
 
       {/* ── Right Main Map Area ── */}
-      <div className="route-map-wrapper">
+      <div className="route-map-wrapper" style={{ position: "relative" }}>
+        {/* HD Map Style Switcher */}
+        <div style={{ position: "absolute", top: 12, right: 12, zIndex: 1000, display: "flex", gap: 6 }}>
+          <button
+            type="button"
+            className="ai-btn ai-btn--sm"
+            onClick={() => setMapStyle("street")}
+            style={{
+              fontSize: 11,
+              padding: "4px 10px",
+              background: mapStyle === "street" ? "var(--teal)" : "rgba(15,23,42,0.85)",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,0.15)",
+              backdropFilter: "blur(8px)",
+              cursor: "pointer",
+            }}
+          >
+            🗺️ Street (HD)
+          </button>
+          <button
+            type="button"
+            className="ai-btn ai-btn--sm"
+            onClick={() => setMapStyle("satellite")}
+            style={{
+              fontSize: 11,
+              padding: "4px 10px",
+              background: mapStyle === "satellite" ? "var(--teal)" : "rgba(15,23,42,0.85)",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,0.15)",
+              backdropFilter: "blur(8px)",
+              cursor: "pointer",
+            }}
+          >
+            🛰️ Satellite (HD)
+          </button>
+          <button
+            type="button"
+            className="ai-btn ai-btn--sm"
+            onClick={() => setMapStyle("dark")}
+            style={{
+              fontSize: 11,
+              padding: "4px 10px",
+              background: mapStyle === "dark" ? "var(--teal)" : "rgba(15,23,42,0.85)",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,0.15)",
+              backdropFilter: "blur(8px)",
+              cursor: "pointer",
+            }}
+          >
+            🌙 Dark
+          </button>
+        </div>
+
         <MapContainer 
           center={DEFAULT_CENTER} 
           zoom={5} 
@@ -570,11 +623,44 @@ export default function RoutePlanner() {
           style={{ height: "100%", width: "100%" }} 
           scrollWheelZoom={true}
         >
-          <TileLayer
-            attribution='&copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
-            maxZoom={18}
-          />
+          {mapStyle === "satellite" ? (
+            <>
+              <TileLayer
+                key="route-sat"
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                attribution='&copy; Esri &mdash; High-Res Satellite'
+                maxZoom={18}
+              />
+              <TileLayer
+                key="route-sat-labels"
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+                attribution='&copy; Esri'
+                maxZoom={18}
+              />
+            </>
+          ) : mapStyle === "dark" ? (
+            <>
+              <TileLayer
+                key="route-dark-base"
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+                attribution='&copy; Esri &mdash; Canvas Dark'
+                maxZoom={16}
+              />
+              <TileLayer
+                key="route-dark-ref"
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+                attribution='&copy; Esri'
+                maxZoom={16}
+              />
+            </>
+          ) : (
+            <TileLayer
+              key="route-street"
+              attribution='&copy; Esri &mdash; High-Definition Street Map'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={18}
+            />
+          )}
           <FitBounds start={start} dest={dest} />
           <NavCameraFollow position={currentNavPos} isNavigating={isNavigating} />
 

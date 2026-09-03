@@ -1,5 +1,5 @@
 import "./App.css";
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -28,50 +28,17 @@ function PageSpinner() {
   );
 }
 
-function ClickFeedback() {
-  const [ripples, setRipples] = useState([]);
-
-  useEffect(() => {
-    let nextId = 0;
-    const handlePointerDown = (event) => {
-      const id = nextId++;
-      setRipples((current) => [...current.slice(-5), {
-        id,
-        x: event.clientX,
-        y: event.clientY,
-      }]);
-      window.setTimeout(() => {
-        setRipples((current) => current.filter((ripple) => ripple.id !== id));
-      }, 650);
-    };
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, []);
-
-  return (
-    <div className="click-feedback" aria-hidden="true">
-      {ripples.map((ripple) => (
-        <span
-          key={ripple.id}
-          className="click-feedback__ripple"
-          style={{ left: ripple.x, top: ripple.y }}
-        />
-      ))}
-    </div>
-  );
-}
-
 function GlobalAlertBar({ onClose }) {
   const { t } = useTranslation();
   return (
     <div className="global-alert-bar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
-      <span><strong>Delhi</strong> {t('app.demoAlert').replace("Delhi ", "").replace("दिल्ली ", "")}</span>
-      <button className="global-alert-bar__close" onClick={onClose}>✕</button>
+      <div className="global-alert-bar__content">
+        <span className="global-alert-bar__icon">⚠️</span>
+        <span className="global-alert-bar__text">
+          <strong>Air Quality Alert:</strong> {t('app.demoAlert', 'Delhi AQI is 284, above your alert threshold of 170. (Very Unhealthy)')}
+        </span>
+      </div>
+      <button className="global-alert-bar__close" onClick={onClose} aria-label="Dismiss alert">✕</button>
     </div>
   );
 }
@@ -133,7 +100,6 @@ function App() {
   return (
     <BrowserRouter>
       <div className="app-shell">
-        <ClickFeedback />
         <Navbar />
         <OfflineBanner />
         {alertVisible && <GlobalAlertBar onClose={() => setAlertVisible(false)} />}
