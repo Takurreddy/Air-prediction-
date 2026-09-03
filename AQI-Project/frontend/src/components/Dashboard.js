@@ -778,44 +778,63 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* popup info card */}
-        {showPopup && station && (
-          <div className="aq-popup" style={{ position: "relative", marginBottom: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div>
-                <div className="aq-popup__title">
-                  📍 {userLocation && selectedCity === userLocation.name ? `${userLocation.fullName} · Live GPS` : `${selectedCityLabel}, India Air Quality`}
-                </div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-                  <div style={{ background: "var(--purple)", padding: "2px 10px", borderRadius: 6, fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
-                    {displayAqi}
-                  </div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>IND AQI</div>
-                </div>
-                <div className="aq-popup__cat" style={{ color: aqiColor(displayAqi) }}>{aqiMeta.label}</div>
-                <div className="aq-popup__meta">
-                  <span>🌡 {station.temperature ?? "—"}°C</span>
-                  <span>💧 {station.humidity ?? "—"}%</span>
-                  <span>💨 {station.wind_speed ?? "8.5"} km/h</span>
-                </div>
-                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                  <button className="ai-btn ai-btn--ghost ai-btn--sm" onClick={() => {}}>Details</button>
-                  {selectedCityData && (
-                    <a
-                      href={`https://www.google.com/maps/@${selectedCityData.lat},${selectedCityData.lng},14z`}
-                      target="_blank" rel="noreferrer"
-                      className="ai-btn ai-btn--ghost ai-btn--sm"
-                    >GMap ↗</a>
-                  )}
-                </div>
-              </div>
-              <button onClick={() => setShowPopup(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16, padding: 0 }}>✕</button>
-            </div>
-          </div>
-        )}
-
         {/* map */}
         <div style={{ flex: 1, minHeight: 380, position: "relative", borderRadius: "var(--radius-lg)", overflow: "hidden", background: "var(--bg-panel)", border: "1px solid var(--border)" }}>
+          {/* popup info card (HUD) */}
+          {showPopup && station && (
+            <div className="aq-popup">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div style={{ flex: 1 }}>
+                  <div className="aq-popup__title">
+                    <span style={{ fontSize: 16 }}>📍</span>
+                    {userLocation && selectedCity === userLocation.name ? `${userLocation.fullName} · Live GPS` : `${selectedCityLabel}, India Air Quality`}
+                  </div>
+                  
+                  <div className="aq-popup__aqi-block">
+                    <div className="aq-popup__aqi-val" style={{ background: aqiColor(displayAqi) }}>
+                      {displayAqi}
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, letterSpacing: 0.5 }}>IND AQI</span>
+                      <span className="aq-popup__cat" style={{ color: aqiColor(displayAqi) }}>{aqiMeta.label}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="aq-popup__meta">
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ opacity: 0.7 }}>🌡</span>
+                      <strong>{station.temperature ?? "—"}°C</strong>
+                    </div>
+                    <div style={{ width: 1, height: 12, background: "var(--border-mid)" }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ opacity: 0.7 }}>💧</span>
+                      <strong>{station.humidity ?? "—"}%</strong>
+                    </div>
+                    <div style={{ width: 1, height: 12, background: "var(--border-mid)" }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ opacity: 0.7 }}>💨</span>
+                      <strong>{station.wind_speed ?? "8.5"} km/h</strong>
+                    </div>
+                  </div>
+                  
+                  <div className="aq-popup__actions">
+                    <button className="ai-btn ai-btn--ghost ai-btn--sm" onClick={() => {}}>Details</button>
+                    {selectedCityData && (
+                      <a
+                        href={`https://www.google.com/maps/@${selectedCityData.lat},${selectedCityData.lng},14z`}
+                        target="_blank" rel="noreferrer"
+                        className="ai-btn ai-btn--ghost ai-btn--sm"
+                      >GMap ↗</a>
+                    )}
+                  </div>
+                </div>
+                <button onClick={() => setShowPopup(false)} className="aq-popup__close">✕</button>
+              </div>
+            </div>
+          )}
+
+
+
           <RealIndiaMap
             cities={enrichedCities}
             selectedCity={selectedCity}

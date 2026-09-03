@@ -1298,6 +1298,108 @@ input, textarea, [contenteditable="true"] {
 }
 
 /* ══════════════════════════════════════════
+   HUD / POPUP CARDS
+   ══════════════════════════════════════════ */
+.aq-popup {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: 90%;
+  max-width: 440px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+  animation: popupReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+.aq-popup::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 100%);
+  pointer-events: none;
+}
+.aq-popup__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.aq-popup__aqi-block {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.aq-popup__aqi-val {
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+.aq-popup__cat {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.aq-popup__meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--text-main);
+  background: rgba(0,0,0,0.12);
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-mid);
+}
+[data-theme="light"] .aq-popup__meta {
+  background: rgba(255,255,255,0.6);
+}
+.aq-popup__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.aq-popup__close {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms;
+}
+.aq-popup__close:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+@keyframes popupReveal {
+  from { opacity: 0; transform: translate(-50%, -15px) scale(0.98); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+/* ══════════════════════════════════════════
    RESPONSIVE
    ══════════════════════════════════════════ */
 @media (max-width: 900px) {
