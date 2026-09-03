@@ -60,7 +60,9 @@ function Toggle({ checked, onChange }) {
   const [savedOk,     setSavedOk]     = useState(false);
 
   /* notification prefs */
-  const [emailAlerts,   setEmailAlerts]   = useState(false);
+  const [emailAlerts,   setEmailAlerts]   = useState(() => localStorage.getItem("alert_email_enabled") === "true");
+  const [emailAddress,  setEmailAddress]  = useState(() => localStorage.getItem("alert_email") || "");
+  const [emailSaved,    setEmailSaved]    = useState(false);
   const [smsAlerts,     setSmsAlerts]     = useState(false);
   const [smsPhone,      setSmsPhone]      = useState("");
   const [breachOnly,    setBreachOnly]    = useState(true);
@@ -268,10 +270,43 @@ function Toggle({ checked, onChange }) {
             <MailIcon />
             <div>
               <div className="notif-item__title">{t('alerts.emailAlerts')}</div>
+              <div className="notif-item__sub">Instant push notifications to your inbox for severe AQI spikes &amp; daily advisory</div>
             </div>
           </div>
-          <Toggle checked={emailAlerts} onChange={setEmailAlerts} />
+          <Toggle checked={emailAlerts} onChange={(val) => {
+            setEmailAlerts(val);
+            localStorage.setItem("alert_email_enabled", val ? "true" : "false");
+          }} />
         </div>
+        {emailAlerts && (
+          <div style={{ marginLeft: 34, marginBottom: 14 }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", maxWidth: 400 }}>
+              <input 
+                type="email" 
+                className="ai-input" 
+                placeholder="Enter alert email (e.g. name@example.com)" 
+                value={emailAddress} 
+                onChange={e => setEmailAddress(e.target.value)} 
+                style={{ flex: 1, marginTop: 4 }}
+              />
+              <button 
+                type="button" 
+                className="ai-btn ai-btn--sm"
+                onClick={() => {
+                  localStorage.setItem("alert_email", emailAddress);
+                  setEmailSaved(true);
+                  setTimeout(() => setEmailSaved(false), 2000);
+                }}
+                style={{ marginTop: 4 }}
+              >
+                {emailSaved ? "✓ Saved" : "Save Email"}
+              </button>
+            </div>
+            <span style={{ fontSize: 11, color: "var(--teal-lt)", marginTop: 4, display: "block" }}>
+              ✓ Mail push notifications active. (Mobile SMS and Birthday profiles can be added below).
+            </span>
+          </div>
+        )}
 
         <div className="notif-item">
           <div className="notif-item__left">

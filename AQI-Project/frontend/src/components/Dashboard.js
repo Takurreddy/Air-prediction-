@@ -111,9 +111,9 @@ const PinIcon = () => (
     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
   </svg>
 );
-const CalIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+const ClockIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13, display: "inline-block", verticalAlign: "middle" }}>
+    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
   </svg>
 );
 const TargetIcon = () => (
@@ -605,7 +605,7 @@ export default function Dashboard() {
         </button>
         <div className="aq-cities-badge">
           <span>{t('dashboard.cities')}</span>
-          <strong>{availableCities.length || CITIES.length} {t('dashboard.active')}</strong>
+          <strong>{CITIES.length} {t('dashboard.active')}</strong>
         </div>
         <button className="aq-fav-trigger-btn" onClick={() => setShowFavModal(!showFavModal)}>
           <BookmarkIcon /> Favorites
@@ -615,10 +615,15 @@ export default function Dashboard() {
       {/* ── sidebar ── */}
       <aside className="aq-sidebar">
         <h1 className="aq-page-title">{t('dashboard.title')}</h1>
-        <div className="aq-meta">
-          <CalIcon />
-          {dateStr} · {t('dashboard.localTime')}
-          &nbsp;·&nbsp; Local → 🇮🇳 IND
+        <div className="aq-live-header-badge">
+          <div className="aq-live-header-badge__top">
+            <span className="aq-live-pulse-dot" />
+            <span className="aq-live-header-badge__status">REAL-TIME MONITOR</span>
+            <span className="aq-live-header-badge__tag">LIVE</span>
+          </div>
+          <div className="aq-live-header-badge__time">
+            <ClockIcon /> {dateStr} IST &nbsp;·&nbsp; 🇮🇳 Sensors Online
+          </div>
         </div>
 
         {/* search history */}
