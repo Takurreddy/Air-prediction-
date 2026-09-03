@@ -393,6 +393,24 @@ body {
 .aq-cities-badge span  { color: var(--text-muted); }
 .aq-cities-badge strong { color: var(--teal-lt); }
 
+.aq-fav-trigger-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--radius);
+  background: linear-gradient(135deg, rgba(234,179,8,.12), rgba(234,179,8,.04));
+  border: 1px solid rgba(234,179,8,.25);
+  color: #eab308; font-size: 12px; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+  transition: all 200ms;
+  box-shadow: 0 2px 8px rgba(234,179,8,.08);
+}
+.aq-fav-trigger-btn:hover {
+  background: linear-gradient(135deg, rgba(234,179,8,.22), rgba(234,179,8,.1));
+  border-color: rgba(234,179,8,.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(234,179,8,.15);
+}
+.aq-fav-trigger-btn svg { stroke: #eab308; }
+
 .aq-sidebar {
   background: var(--glass-bg-strong);
   backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
@@ -707,6 +725,7 @@ body {
     radial-gradient(ellipse 55% 45% at 80% 75%, rgba(2,132,199,.08) 0%, transparent 55%),
     radial-gradient(ellipse 40% 30% at 50% 50%, rgba(56,189,248,.04) 0%, transparent 45%);
   padding: 24px;
+  overflow-y: auto;
 }
 .auth-card {
   width: 100%; max-width: 420px;
@@ -990,4 +1009,27 @@ body {
   .nav-tabs a       { padding: 5px 9px; font-size: 11px; }
   .auth-social      { flex-direction: column; }
   .forecast-page, .route-page, .exposure-page { padding: 14px; }
+
+  /* ── Mobile Auth ── */
+  .auth-page        { padding: 16px 12px; align-items: flex-start; padding-top: 24px; }
+  .auth-card        { padding: 24px 18px; border-radius: 18px; max-width: 100%; }
+  .auth-card__icon  { width: 44px; height: 44px; border-radius: 12px; margin-bottom: 12px; }
+  .auth-card__icon svg { width: 22px; height: 22px; }
+  .auth-card__title { font-size: 19px; }
+  .auth-card__sub   { font-size: 12px; margin-bottom: 16px; }
+  .auth-tabs        { margin-bottom: 16px; }
+  .auth-tab         { padding: 8px; font-size: 12px; }
+  .auth-field        { margin-bottom: 10px; }
+  .auth-field input  { padding: 10px 12px 10px 36px; font-size: 14px; border-radius: 10px; }
+  .auth-field label  { font-size: 11px; margin-bottom: 4px; }
+  .auth-method-switch { margin-bottom: 14px; }
+  .auth-method-switch button { padding: 8px 0; font-size: 12px; }
+  .auth-submit      { padding: 12px; font-size: 13px; border-radius: 10px; margin-bottom: 12px; }
+  .auth-guest       { font-size: 12px; }
+
+  /* ── Mobile Topbar ── */
+  .aq-page__topbar  { flex-wrap: wrap; padding: 8px 12px; gap: 8px; }
+  .aq-search        { min-width: 100%; order: -1; }
+  .aq-cities-badge  { font-size: 11px; padding: 5px 10px; }
+  .aq-fav-trigger-btn { font-size: 11px; padding: 5px 10px; }
 }

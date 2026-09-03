@@ -1,5 +1,5 @@
 /**
- * cities.js — Single source of truth for all 27 monitored Indian cities.
+ * cities.js — Single source of truth for all monitored Indian cities (75+).
  *
  * Used by Dashboard, RoutePlanner, App.js, and prediction components.
  * Eliminates the 3 previously duplicated CITIES arrays.
@@ -26,6 +26,9 @@ const CITIES = [
   { name: "Jammu",              state: "Jammu & Kashmir",   lat: 32.7266, lng: 74.8570, defaultAqi: 72  },
   { name: "Shimla",             state: "Himachal Pradesh",  lat: 31.1048, lng: 77.1734, defaultAqi: 35  },
   { name: "Dehradun",           state: "Uttarakhand",       lat: 30.3165, lng: 78.0322, defaultAqi: 72  },
+  { name: "Haridwar",           state: "Uttarakhand",       lat: 29.9457, lng: 78.1642, defaultAqi: 68  },
+  { name: "Rishikesh",          state: "Uttarakhand",       lat: 30.0869, lng: 78.2676, defaultAqi: 42  },
+  { name: "Patiala",            state: "Punjab",            lat: 30.3398, lng: 76.3869, defaultAqi: 115 },
 
   // ── Uttar Pradesh & Bihar ──
   { name: "Lucknow",            state: "Uttar Pradesh",     lat: 26.8467, lng: 80.9462, defaultAqi: 170 },
@@ -35,6 +38,9 @@ const CITIES = [
   { name: "Meerut",             state: "Uttar Pradesh",     lat: 28.9845, lng: 77.7064, defaultAqi: 185 },
   { name: "Patna",              state: "Bihar",             lat: 25.6093, lng: 85.1376, defaultAqi: 185 },
   { name: "Gaya",               state: "Bihar",             lat: 24.7914, lng: 85.0002, defaultAqi: 160 },
+  { name: "Prayagraj",          state: "Uttar Pradesh",     lat: 25.4358, lng: 81.8463, defaultAqi: 148 },
+  { name: "Gorakhpur",          state: "Uttar Pradesh",     lat: 26.7606, lng: 83.3732, defaultAqi: 155 },
+  { name: "Mathura",            state: "Uttar Pradesh",     lat: 27.4924, lng: 77.6737, defaultAqi: 165 },
 
   // ── West & Central ──
   { name: "Ahmedabad",          state: "Gujarat",           lat: 23.0225, lng: 72.5714, defaultAqi: 95  },
@@ -81,6 +87,30 @@ const CITIES = [
   { name: "Mangaluru",          state: "Karnataka",         lat: 12.9141, lng: 74.8560, defaultAqi: 48  },
   { name: "Panaji",             state: "Goa",               lat: 15.4909, lng: 73.8278, defaultAqi: 35  },
   { name: "Puducherry",         state: "Puducherry",        lat: 11.9416, lng: 79.8083, defaultAqi: 52  },
+  { name: "Tiruchirappalli",    state: "Tamil Nadu",        lat: 10.7905, lng: 78.7047, defaultAqi: 55  },
+  { name: "Vellore",            state: "Tamil Nadu",        lat: 12.9165, lng: 79.1325, defaultAqi: 60  },
+  { name: "Warangal",           state: "Telangana",         lat: 17.9784, lng: 79.5941, defaultAqi: 72  },
+  { name: "Nellore",            state: "Andhra Pradesh",    lat: 14.4426, lng: 79.9865, defaultAqi: 50  },
+  { name: "Hubli",              state: "Karnataka",         lat: 15.3647, lng: 75.1240, defaultAqi: 55  },
+  { name: "Thrissur",           state: "Kerala",            lat: 10.5276, lng: 76.2144, defaultAqi: 40  },
+
+  // ── Andhra Pradesh (Coastal) ──
+  { name: "Ongole",             state: "Andhra Pradesh",    lat: 15.5057, lng: 80.0499, defaultAqi: 55  },
+  { name: "Kakinada",           state: "Andhra Pradesh",    lat: 16.9891, lng: 82.2475, defaultAqi: 52  },
+  { name: "Kanigiri",           state: "Andhra Pradesh",    lat: 15.4050, lng: 79.5070, defaultAqi: 48  },
+  { name: "Rajahmundry",        state: "Andhra Pradesh",    lat: 17.0005, lng: 81.8040, defaultAqi: 58  },
+
+  // ── Near Mumbai ──
+  { name: "Thane",              state: "Maharashtra",       lat: 19.2183, lng: 72.9781, defaultAqi: 88  },
+  { name: "Navi Mumbai",        state: "Maharashtra",       lat: 19.0330, lng: 73.0297, defaultAqi: 75  },
+  { name: "Kalyan",             state: "Maharashtra",       lat: 19.2437, lng: 73.1355, defaultAqi: 82  },
+  { name: "Vasai-Virar",        state: "Maharashtra",       lat: 19.3919, lng: 72.8397, defaultAqi: 78  },
+
+  // ── Near Chennai ──
+  { name: "Kanchipuram",        state: "Tamil Nadu",        lat: 12.8342, lng: 79.7036, defaultAqi: 62  },
+  { name: "Chengalpattu",       state: "Tamil Nadu",        lat: 12.6819, lng: 79.9888, defaultAqi: 58  },
+  { name: "Tiruvallur",         state: "Tamil Nadu",        lat: 13.1431, lng: 79.9087, defaultAqi: 65  },
+  { name: "Tambaram",           state: "Tamil Nadu",        lat: 12.9249, lng: 80.1000, defaultAqi: 70  },
 ];
 
 export default CITIES;

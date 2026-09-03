@@ -27,7 +27,14 @@ const CITY_TRANSLATIONS = {
     Cuttack: "कटक", Siliguri: "सिलीगुड़ी", Asansol: "आसनसोल", Shillong: "शिलांग",
     Imphal: "इम्फाल", Agartala: "अगरतला", Vijayawada: "विजयवाड़ा", Tirupati: "तिरुपति",
     Madurai: "मदुरै", Salem: "सलेम", Kozhikode: "कोझिकोड", Mysuru: "मैसूर",
-    Mangaluru: "मंगलुरु", Panaji: "पणजी", Puducherry: "पुडुचेरी"
+    Mangaluru: "मंगलुरु", Panaji: "पणजी", Puducherry: "पुडुचेरी",
+    Haridwar: "हरिद्वार", Rishikesh: "ऋषिकेश", Patiala: "पटियाला",
+    Prayagraj: "प्रयागराज", Gorakhpur: "गोरखपुर", Mathura: "मथुरा",
+    Tiruchirappalli: "तिरुचिरापल्ली", Vellore: "वेल्लोर", Warangal: "वारंगल",
+    Nellore: "नेल्लोर", Hubli: "हुबली", Thrissur: "त्रिशूर",
+    Ongole: "ओंगोल", Kakinada: "काकीनाडा", Kanigiri: "कनिगिरी", Rajahmundry: "राजमुंदरी",
+    Thane: "ठाणे", "Navi Mumbai": "नवी मुंबई", Kalyan: "कल्याण", "Vasai-Virar": "वसई-विरार",
+    Kanchipuram: "कांचीपुरम", Chengalpattu: "चेंगलपट्टु", Tiruvallur: "तिरुवल्लूर", Tambaram: "ताम्बरम"
   },
   ta: {
     Chennai: "சென்னை", Coimbatore: "கோயம்புத்தூர்", Delhi: "டெல்லி",
