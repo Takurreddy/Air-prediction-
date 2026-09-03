@@ -56,10 +56,12 @@ def hash_otp(phone_number: str, code: str) -> str:
 
 
 def send_otp_sms(phone_number: str, code: str) -> None:
-    """Deliver OTP through Twilio, or auto-fallback to dev mode if not configured."""
+    """Deliver OTP through Twilio; only allow a local fallback in explicit dev mode."""
     if not settings.twilio_account_sid or not settings.twilio_from_number:
-        log.warning("Twilio not configured — OTP dev fallback: %s -> %s", phone_number, code)
-        return
+        if settings.otp_dev_mode:
+            log.warning("OTP dev mode enabled for %s", phone_number)
+            return
+        raise RuntimeError("OTP delivery is not configured.")
 
     # Use API Key if provided, otherwise fallback to Account Auth Token
     if settings.twilio_api_key and settings.twilio_api_secret:
@@ -67,8 +69,7 @@ def send_otp_sms(phone_number: str, code: str) -> None:
     elif settings.twilio_auth_token:
         auth = (settings.twilio_account_sid, settings.twilio_auth_token)
     else:
-        log.warning("Twilio auth missing — OTP dev fallback: %s -> %s", phone_number, code)
-        return
+        raise RuntimeError("Twilio authentication is not configured.")
 
     response = httpx.post(
         f"https://api.twilio.com/2010-04-01/Accounts/{settings.twilio_account_sid}/Messages.json",

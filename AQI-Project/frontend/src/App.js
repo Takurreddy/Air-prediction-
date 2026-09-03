@@ -1,5 +1,5 @@
 import "./App.css";
-import { useState, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -24,6 +24,40 @@ function PageSpinner() {
     <div className="page-spinner">
       <div className="page-spinner__ring" />
       <p>{t('app.loading', 'Loading…')}</p>
+    </div>
+  );
+}
+
+function ClickFeedback() {
+  const [ripples, setRipples] = useState([]);
+
+  useEffect(() => {
+    let nextId = 0;
+    const handlePointerDown = (event) => {
+      const id = nextId++;
+      setRipples((current) => [...current.slice(-5), {
+        id,
+        x: event.clientX,
+        y: event.clientY,
+      }]);
+      window.setTimeout(() => {
+        setRipples((current) => current.filter((ripple) => ripple.id !== id));
+      }, 650);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, []);
+
+  return (
+    <div className="click-feedback" aria-hidden="true">
+      {ripples.map((ripple) => (
+        <span
+          key={ripple.id}
+          className="click-feedback__ripple"
+          style={{ left: ripple.x, top: ripple.y }}
+        />
+      ))}
     </div>
   );
 }
@@ -99,6 +133,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="app-shell">
+        <ClickFeedback />
         <Navbar />
         <OfflineBanner />
         {alertVisible && <GlobalAlertBar onClose={() => setAlertVisible(false)} />}

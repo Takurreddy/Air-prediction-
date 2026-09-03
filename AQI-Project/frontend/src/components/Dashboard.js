@@ -405,7 +405,7 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const { translateCity, searchCities } = useLocationTranslation();
   const [searchQuery, setSearchQuery]       = useState("");
-  const [selectedCity, setSelectedCity]     = useState(CITIES[0].name);
+  const [selectedCity, setSelectedCity]     = useState(runtimeConfig.defaultCity || CITIES[0].name);
   const [station, setStation]               = useState(null);
   const [cityAqiMap, setCityAqiMap]         = useState({});
   const [error, setError]                   = useState("");
@@ -426,27 +426,6 @@ export default function Dashboard() {
         fetchAirQualityByCity(city),
       ]);
       let first = readings[0] ?? null;
-
-      if (first && (first.temperature == null || first.humidity == null)) {
-        try {
-          const apiKey = process.env.REACT_APP_OPENWEATHER_API_KEY;
-          if (apiKey) {
-            const weatherRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`);
-            if (weatherRes.ok) {
-              const weatherData = await weatherRes.json();
-              first = {
-                ...first,
-                temperature: Math.round(weatherData.main.temp),
-                humidity: weatherData.main.humidity,
-                wind_speed: (weatherData.wind.speed * 3.6).toFixed(1),
-                wind_deg: weatherData.wind.deg,
-              };
-            }
-          }
-        } catch (we) {
-          console.error("Weather fallback failed", we);
-        }
-      }
 
       setStation(first);
       if (first) {
@@ -472,6 +451,13 @@ export default function Dashboard() {
     init();
     loadCityData(runtimeConfig.defaultCity || CITIES[0].name);
   }, [loadCityData]);
+
+  useEffect(() => {
+    const refresh = window.setInterval(() => {
+      loadCityData(selectedCity);
+    }, 60_000);
+    return () => window.clearInterval(refresh);
+  }, [loadCityData, selectedCity]);
 
   const [userLocation, setUserLocation]     = useState(null);
 

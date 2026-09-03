@@ -61,7 +61,10 @@ def request_otp(payload: OtpRequest, db: Session = Depends(get_db)):
     except Exception as exc:
         db.delete(challenge)
         db.commit()
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=503,
+            detail="OTP delivery is temporarily unavailable. Please try again later.",
+        ) from exc
 
     response = {
         "message": "OTP sent to your phone number.",

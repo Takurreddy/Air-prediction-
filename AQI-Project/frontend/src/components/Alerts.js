@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { createAlert, deleteAlert, listAlerts, registerDeviceToken } from "../services/airQualityService";
 
 export default function Alerts() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { t } = useTranslation();
 
   const CONDITIONS = [
@@ -62,7 +62,6 @@ function Toggle({ checked, onChange }) {
   /* notification prefs */
   const [emailAlerts,   setEmailAlerts]   = useState(() => localStorage.getItem("alert_email_enabled") === "true");
   const [emailAddress,  setEmailAddress]  = useState(() => localStorage.getItem("alert_email") || "");
-  const [emailSaved,    setEmailSaved]    = useState(false);
   const [smsAlerts,     setSmsAlerts]     = useState(false);
   const [smsPhone,      setSmsPhone]      = useState("");
   const [breachOnly,    setBreachOnly]    = useState(true);
@@ -78,6 +77,12 @@ function Toggle({ checked, onChange }) {
   useEffect(() => {
     if (isAuthenticated) loadAlerts();
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (user?.email && !localStorage.getItem("alert_email")) {
+      setEmailAddress(user.email);
+    }
+  }, [user]);
 
   async function loadAlerts() {
     try { setAlerts(await listAlerts()); setAlertError(""); }
@@ -281,29 +286,17 @@ function Toggle({ checked, onChange }) {
         {emailAlerts && (
           <div style={{ marginLeft: 34, marginBottom: 14 }}>
             <div style={{ display: "flex", gap: 8, alignItems: "center", maxWidth: 400 }}>
-              <input 
+              <input
                 type="email" 
                 className="ai-input" 
-                placeholder="Enter alert email (e.g. name@example.com)" 
-                value={emailAddress} 
-                onChange={e => setEmailAddress(e.target.value)} 
+                placeholder="Account email"
+                value={emailAddress || user?.email || ""}
+                readOnly
                 style={{ flex: 1, marginTop: 4 }}
               />
-              <button 
-                type="button" 
-                className="ai-btn ai-btn--sm"
-                onClick={() => {
-                  localStorage.setItem("alert_email", emailAddress);
-                  setEmailSaved(true);
-                  setTimeout(() => setEmailSaved(false), 2000);
-                }}
-                style={{ marginTop: 4 }}
-              >
-                {emailSaved ? "✓ Saved" : "Save Email"}
-              </button>
             </div>
             <span style={{ fontSize: 11, color: "var(--teal-lt)", marginTop: 4, display: "block" }}>
-              ✓ Mail push notifications active. (Mobile SMS and Birthday profiles can be added below).
+              ✓ AQI email alerts are sent to the email address on your account.
             </span>
           </div>
         )}
