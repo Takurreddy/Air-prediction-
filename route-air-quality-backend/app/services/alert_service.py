@@ -26,35 +26,6 @@ from app.models.notification import Notification
 log = logging.getLogger(__name__)
 
 
-# ── Firebase push ─────────────────────────────────────────────────────────────
-
-def _send_push(fcm_token: str, title: str, body: str, data: dict) -> None:
-    """Send a Firebase push notification. Silent-fails if SDK not configured."""
-    try:
-        import firebase_admin
-        from firebase_admin import credentials, messaging
-
-        if not firebase_admin._apps:
-            cred_path = settings.firebase_credentials_path
-            import os
-            if not os.path.exists(cred_path):
-                log.debug("Firebase credentials not found at %s — skipping push.", cred_path)
-                return
-            cred = credentials.Certificate(cred_path)
-            firebase_admin.initialize_app(cred)
-
-        message = messaging.Message(
-            notification=messaging.Notification(title=title, body=body),
-            data={k: str(v) for k, v in data.items()},
-            token=fcm_token,
-        )
-        response = messaging.send(message)
-        log.info("Push sent: %s", response)
-
-    except Exception as exc:
-        log.warning("Push notification failed: %s", exc)
-
-
 # ── Email ─────────────────────────────────────────────────────────────────────
 
 def _send_email(to_email: str, subject: str, html_body: str) -> None:
@@ -80,6 +51,40 @@ def _send_email(to_email: str, subject: str, html_body: str) -> None:
 
     except Exception as exc:
         log.warning("Email alert failed: %s", exc)
+
+
+# ── SMS ───────────────────────────────────────────────────────────────────────
+import httpx
+
+def _send_sms(to_phone: str, body: str) -> None:
+    """Send an SMS via Twilio. Silent-fails if Twilio not configured."""
+    if not settings.twilio_account_sid or not settings.twilio_from_number:
+        log.debug("Twilio not configured — skipping SMS alert.")
+        return
+
+    try:
+        if settings.twilio_api_key and settings.twilio_api_secret:
+            auth = (settings.twilio_api_key, settings.twilio_api_secret)
+        elif settings.twilio_auth_token:
+            auth = (settings.twilio_account_sid, settings.twilio_auth_token)
+        else:
+            log.warning("Twilio auth not configured — skipping SMS alert.")
+            return
+
+        response = httpx.post(
+            f"https://api.twilio.com/2010-04-01/Accounts/{settings.twilio_account_sid}/Messages.json",
+            data={
+                "From": settings.twilio_from_number,
+                "To": to_phone,
+                "Body": body,
+            },
+            auth=auth,
+            timeout=10.0,
+        )
+        response.raise_for_status()
+        log.info("SMS alert sent to %s", to_phone)
+    except Exception as exc:
+        log.warning("SMS alert failed: %s", exc)
 
 
 # ── Notification record ───────────────────────────────────────────────────────
@@ -114,12 +119,11 @@ def dispatch_threshold_alert(
     *,
     db: Session,
     user_id: uuid.UUID,
-    user_email: str,
-    fcm_token: str | None,
+    user_email: str | None,
+    user_phone: str | None,
     station_id: str,
     aqi: float,
     category: str,
-    notify_push: bool,
     notify_email: bool,
 ) -> None:
     """
@@ -129,11 +133,10 @@ def dispatch_threshold_alert(
         db           — open SQLAlchemy session (for persisting the notification)
         user_id      — UUID of the user to notify
         user_email   — email address for SMTP channel
-        fcm_token    — Firebase device token (None = skip push)
+        user_phone   — phone number for SMS channel
         station_id   — station that breached the threshold
         aqi          — current predicted AQI value
         category     — AQI category string (e.g. "Unhealthy")
-        notify_push  — whether the user wants push notifications
         notify_email — whether the user wants email notifications
     """
     title   = f"Air Quality Alert — {category}"
@@ -151,11 +154,7 @@ def dispatch_threshold_alert(
     # 1. Persist in-app notification (always)
     _persist_notification(db, user_id, title, body, payload)
 
-    # 2. Push notification
-    if notify_push and fcm_token:
-        _send_push(fcm_token, title, body, payload)
-
-    # 3. Email
+    # 2. Email
     if notify_email and user_email:
         html = f"""
         <html><body style="font-family:sans-serif;padding:24px;">
@@ -169,3 +168,7 @@ def dispatch_threshold_alert(
         </body></html>
         """
         _send_email(user_email, title, html)
+
+    # 3. SMS
+    if user_phone:
+        _send_sms(user_phone, body)

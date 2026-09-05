@@ -1,4 +1,4 @@
-from urllib.parse import quote_plus
+from urllib.parse import quote, quote_plus
 from pydantic_settings import BaseSettings
 
 
@@ -55,8 +55,6 @@ class Settings(BaseSettings):
     google_maps_api_key: str = ""     # Google Maps Directions API
     osrm_base_url: str = "http://router.project-osrm.org"  # free OSRM fallback
 
-    # ── Firebase (push notifications) ─────────────────────────────────────────
-    firebase_credentials_path: str = "./firebase-credentials.json"
 
     # ── SMTP (email alerts) ───────────────────────────────────────────────────
     smtp_host: str = ""
@@ -86,8 +84,8 @@ class Settings(BaseSettings):
                 socket.gethostbyname(host)
             except socket.gaierror:
                 host = "127.0.0.1"
-        user = quote_plus(self.postgres_user)
-        pwd  = quote_plus(self.postgres_password)
+        user = quote(self.postgres_user)
+        pwd  = quote(self.postgres_password)
         return (
             f"postgresql://{user}:{pwd}"
             f"@{host}:{self.postgres_port}/{self.postgres_db}"
@@ -95,9 +93,9 @@ class Settings(BaseSettings):
 
     @property
     def postgres_url_async(self) -> str:
-        # quote_plus encodes special characters (@, #, %, etc.) in credentials
-        user = quote_plus(self.postgres_user)
-        pwd  = quote_plus(self.postgres_password)
+        # quote encodes special characters (@, #, %, etc.) in credentials
+        user = quote(self.postgres_user)
+        pwd  = quote(self.postgres_password)
         return (
             f"postgresql+asyncpg://{user}:{pwd}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"

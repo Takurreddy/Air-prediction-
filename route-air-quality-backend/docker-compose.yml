@@ -2,8 +2,6 @@
 x-app-env: &app-env
   env_file: .env
   depends_on:
-    postgres:
-      condition: service_healthy
     influxdb:
       condition: service_healthy
     redis:
@@ -11,23 +9,6 @@ x-app-env: &app-env
 
 services:
   # ── Infrastructure ──────────────────────────────────────────────────────────
-  postgres:
-    image: postgres:16
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   influxdb:
     image: influxdb:2.7
     restart: unless-stopped
@@ -111,6 +92,5 @@ services:
       - ./ml:/app/ml:ro
 
 volumes:
-  postgres_data:
   influxdb_data:
   minio_data:

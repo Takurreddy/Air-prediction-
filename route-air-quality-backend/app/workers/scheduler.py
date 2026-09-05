@@ -146,11 +146,10 @@ async def evaluate_alert_thresholds() -> None:
                     db=db,
                     user_id=user.id,
                     user_email=user.email,
-                    fcm_token=fcm_token,
+                    user_phone=user.phone_number,
                     station_id=alert.station_id,
                     aqi=latest_aqi,
                     category=latest_category,
-                    notify_push=alert.notify_push,
                     notify_email=alert.notify_email,
                 )
 
