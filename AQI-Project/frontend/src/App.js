@@ -1,10 +1,11 @@
 import "./App.css";
-import { useState, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import Navbar from "./components/Navbar";
 import { useAuth } from "./context/AuthContext";
+import { supabase } from "./utils/supabase";
 
 /* ── Lazy-loaded pages with code-splitting ── */
 const LandingPage  = lazy(() => import("./LandingPage"));
@@ -48,7 +49,7 @@ function OfflineBanner() {
   const { t } = useTranslation();
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
-  useState(() => {
+  useEffect(() => {
     const goOffline = () => setIsOffline(true);
     const goOnline = () => setIsOffline(false);
     window.addEventListener("offline", goOffline);
@@ -57,7 +58,7 @@ function OfflineBanner() {
       window.removeEventListener("offline", goOffline);
       window.removeEventListener("online", goOnline);
     };
-  });
+  }, []);
 
   if (!isOffline) return null;
   return (
@@ -96,6 +97,17 @@ function PublicOnlyRoute({ children }) {
 
 function App() {
   const [alertVisible, setAlertVisible] = useState(true);
+  const [todos, setTodos] = useState([]);
+
+  useEffect(() => {
+    async function getTodos() {
+      const { data: todosData } = await supabase.from('todos').select();
+      if (todosData) {
+        setTodos(todosData);
+      }
+    }
+    getTodos();
+  }, []);
 
   return (
     <BrowserRouter>
@@ -103,6 +115,16 @@ function App() {
         <Navbar />
         <OfflineBanner />
         {alertVisible && <GlobalAlertBar onClose={() => setAlertVisible(false)} />}
+        {todos.length > 0 && (
+          <div style={{ padding: "1rem", background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+            <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1rem" }}>Supabase Todos:</h3>
+            <ul style={{ margin: 0, paddingLeft: "1.5rem" }}>
+              {todos.map(todo => (
+                <li key={todo.id}>{todo.name}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         <Suspense fallback={<PageSpinner />}>
           <Routes>
             <Route path="/"              element={<LandingPage />} />
