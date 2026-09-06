@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import runtimeConfig from "../config/runtimeConfig";
+import { supabase } from "../utils/supabase";
 
 /* ── Icons ── */
 const WindIcon = () => (
@@ -31,22 +30,6 @@ const UserIcon = () => (
     <circle cx="12" cy="7" r="4" />
   </svg>
 );
-
-const PhoneIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-    style={{ width: 16, height: 16 }}>
-    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-  </svg>
-);
-
-const COUNTRIES = [
-  { code: "+91", label: "India", flag: "🇮🇳" },
-  { code: "+1",  label: "USA / Canada", flag: "🇺🇸" },
-  { code: "+44", label: "UK", flag: "🇬🇧" },
-  { code: "+971", label: "UAE", flag: "🇦🇪" },
-  { code: "+65", label: "Singapore", flag: "🇸🇬" },
-  { code: "+61", label: "Australia", flag: "🇦🇺" },
-];
 
 /* ── Card shell ── */
 function AuthCard({ tab, setTab, children, onGuest }) {
@@ -97,30 +80,21 @@ function AuthCard({ tab, setTab, children, onGuest }) {
   );
 }
 
-/* ── Main Auth component — talks directly to FastAPI ── */
+/* ── Main Auth component — talks to Supabase ── */
 export default function Auth() {
-  const navigate        = useNavigate();
-  const { login }       = useAuth();
+  const navigate = useNavigate();
 
-  const [tab,       setTab]       = useState("signin");
-  const [email,     setEmail]     = useState("");
-  const [phone,     setPhone]     = useState("");
-  const [countryCode, setCountryCode] = useState("+91");
-  const [showCountryMenu, setShowCountryMenu] = useState(false);
-  const [otp,       setOtp]       = useState("");
+  const [tab, setTab] = useState("signin");
+  const [email, setEmail] = useState("");
   const [authMethod, setAuthMethod] = useState("email");
-  const [otpStep,   setOtpStep]   = useState(false);
-  const [password,  setPassword]  = useState("");
-  const [fullName,  setFullName]  = useState("");
-  const [loading,   setLoading]   = useState(false);
-  const [error,     setError]     = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
   function resetForm() {
     setEmail("");
-    setPhone("");
-    setOtp("");
-    setOtpStep(false);
     setPassword("");
     setFullName("");
     setError("");
@@ -137,132 +111,60 @@ export default function Auth() {
     setError("");
     setSuccessMsg("");
 
-    if (tab === "forgot") {
-      if (!email.trim()) {
-        setError("Enter your email address.");
-        return;
-      }
-      setLoading(true);
-      try {
-        const res = await fetch(`${runtimeConfig.apiBaseUrl}/auth/forgot-password`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: email.trim().toLowerCase() })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "Request failed.");
-        setSuccessMsg(data.message || "Reset link sent!");
-      } catch (err) {
-        setError(err.message || "Could not send reset link.");
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-
-    if (authMethod === "phone") {
-      if (!phone.trim()) {
-        setError("Enter your phone number.");
-        return;
-      }
-      const fullPhone = `${countryCode}${phone.trim()}`;
-      setLoading(true);
-      try {
-        if (!otpStep) {
-          const res = await fetch(`${runtimeConfig.apiBaseUrl}/auth/otp/request`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ phone_number: fullPhone })
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.detail || "Failed to request OTP.");
-          
-          setOtpStep(true);
-          return;
-        }
-
-        if (!otp.trim()) {
-          setError("Enter the OTP sent to your phone.");
-          return;
-        }
-        
-        const payload = {
-          phone_number: fullPhone,
-          code: otp.trim(),
-        };
-        
-        if (tab === "signup" && fullName.trim()) {
-          payload.full_name = fullName.trim();
-        }
-
-        const res = await fetch(`${runtimeConfig.apiBaseUrl}/auth/otp/verify`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        
-        if (!res.ok) throw new Error(data.detail || "Invalid OTP.");
-
-        login(data.access_token, { phone_number: fullPhone, full_name: fullName.trim() || null });
-        navigate("/dashboard");
-      } catch (err) {
-        setError(err.message || "Could not complete phone sign in.");
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-
     if (!email.trim()) {
       setError("Enter your email address.");
-      return;
-    }
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
       return;
     }
 
     setLoading(true);
 
     try {
-      if (tab === "signup") {
-        const res = await fetch(`${runtimeConfig.apiBaseUrl}/auth/signup`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+      if (tab === "forgot") {
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (resetError) throw resetError;
+        setSuccessMsg("Reset link sent to your email!");
+      } 
+      else if (authMethod === "magiclink") {
+        const { error: magicLinkError } = await supabase.auth.signInWithOtp({
+          email: email.trim().toLowerCase(),
+          options: {
+            data: tab === "signup" ? { full_name: fullName.trim() || null } : undefined,
+          }
+        });
+        if (magicLinkError) throw magicLinkError;
+        setSuccessMsg("Check your email for the login link!");
+      } 
+      else {
+        // Password auth
+        if (password.length < 8) {
+          setError("Password must be at least 8 characters.");
+          setLoading(false);
+          return;
+        }
+
+        if (tab === "signup") {
+          const { error: signUpError } = await supabase.auth.signUp({
             email: email.trim().toLowerCase(),
             password: password,
-            full_name: fullName.trim() || null
-          })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "Failed to create account.");
-
-        login(data.access_token, {
-          email: email.trim().toLowerCase(),
-          full_name: fullName.trim() || null,
-        });
-        navigate("/dashboard");
-
-      } else {
-        const res = await fetch(`${runtimeConfig.apiBaseUrl}/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+            options: {
+              data: {
+                full_name: fullName.trim() || null
+              }
+            }
+          });
+          if (signUpError) throw signUpError;
+          setSuccessMsg("Account created! You can now sign in or check your email for a confirmation link.");
+        } else {
+          const { error: signInError } = await supabase.auth.signInWithPassword({
             email: email.trim().toLowerCase(),
             password: password
-          })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "Invalid email or password.");
-
-        login(data.access_token, {
-          email: email.trim().toLowerCase(),
-        });
-        navigate("/dashboard");
+          });
+          if (signInError) throw signInError;
+          navigate("/dashboard");
+        }
       }
-
     } catch (err) {
       setError(err.message || "Authentication failed. Please check your credentials.");
     } finally {
@@ -300,99 +202,18 @@ export default function Auth() {
         {/* Auth method toggle */}
         {tab !== "forgot" && (
           <div className="auth-method-switch" role="group" aria-label="Authentication method">
-          <button type="button" className={authMethod === "email" ? "active" : ""}
-            onClick={() => { setAuthMethod("email"); setOtpStep(false); setError(""); }}>
-            Email &amp; password
-          </button>
-          <button type="button" className={authMethod === "phone" ? "active" : ""}
-            onClick={() => { setAuthMethod("phone"); setError(""); }}>
-            Phone OTP
-          </button>
-        </div>
+            <button type="button" className={authMethod === "email" ? "active" : ""}
+              onClick={() => { setAuthMethod("email"); setError(""); setSuccessMsg(""); }}>
+              Email &amp; Password
+            </button>
+            <button type="button" className={authMethod === "magiclink" ? "active" : ""}
+              onClick={() => { setAuthMethod("magiclink"); setError(""); setSuccessMsg(""); }}>
+              Email Magic Link
+            </button>
+          </div>
         )}
 
-        {authMethod === "phone" && tab !== "forgot" ? (
-          <>
-            {tab === "signup" && (
-              <div className="auth-field">
-                <label>Full Name (optional)</label>
-                <div className="auth-field__row">
-                  <span className="auth-field__icon"><UserIcon /></span>
-                  <input type="text" placeholder="Your name" value={fullName}
-                    onChange={(e) => setFullName(e.target.value)} autoComplete="name" />
-                </div>
-              </div>
-            )}
-            <div className="auth-field">
-              <label>Phone Number</label>
-              <div className="auth-phone-wrap">
-                {/* Custom Glassmorphism Country Code Selector */}
-                <div className="auth-country-selector">
-                  <button
-                    type="button"
-                    className="auth-country-btn"
-                    disabled={otpStep}
-                    onClick={() => setShowCountryMenu(prev => !prev)}
-                  >
-                    <span className="auth-country-flag">{COUNTRIES.find(c => c.code === countryCode)?.flag || "🇮🇳"}</span>
-                    <span className="auth-country-code">{countryCode}</span>
-                    <span className="auth-country-arrow">▾</span>
-                  </button>
-
-                  {showCountryMenu && !otpStep && (
-                    <div className="auth-country-menu">
-                      {COUNTRIES.map(c => (
-                        <div
-                          key={c.code}
-                          className={`auth-country-option${c.code === countryCode ? " active" : ""}`}
-                          onClick={() => {
-                            setCountryCode(c.code);
-                            setShowCountryMenu(false);
-                          }}
-                        >
-                          <span className="auth-country-flag">{c.flag}</span>
-                          <span className="auth-country-label">{c.label}</span>
-                          <span className="auth-country-code">{c.code}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Phone Input with PhoneIcon */}
-                <div className="auth-field__row" style={{ flex: 1 }}>
-                  <span className="auth-field__icon"><PhoneIcon /></span>
-                  <input
-                    type="tel"
-                    placeholder="98765 43210"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-                    autoComplete="tel"
-                    disabled={otpStep}
-                  />
-                </div>
-              </div>
-            </div>
-            {otpStep && (
-              <div className="auth-field">
-                <label>One-Time Password</label>
-                <div className="auth-field__row">
-                  <span className="auth-field__icon"><LockIcon /></span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={6}
-                    placeholder="Enter 6-digit OTP"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                    autoComplete="one-time-code"
-                    autoFocus
-                  />
-                </div>
-              </div>
-            )}
-          </>
-        ) : <div className="auth-field">
+        <div className="auth-field">
           <label>Email Address</label>
           <div className="auth-field__row">
             <span className="auth-field__icon"><MailIcon /></span>
@@ -405,30 +226,31 @@ export default function Auth() {
               autoComplete="email"
             />
           </div>
-        </div>}
+        </div>
 
         {/* Password */}
         {authMethod === "email" && tab !== "forgot" && (
           <div className="auth-field">
             <label>Password</label>
-          <div className="auth-field__row">
-            <span className="auth-field__icon"><LockIcon /></span>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              autoComplete={tab === "signin" ? "current-password" : "new-password"}
-            />
+            <div className="auth-field__row">
+              <span className="auth-field__icon"><LockIcon /></span>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                autoComplete={tab === "signin" ? "current-password" : "new-password"}
+              />
+            </div>
+            {tab === "signin" && (
+              <button type="button" className="auth-field__forgot" onClick={() => setTab("forgot")} style={{ background: 'none', border: 'none', cursor: 'pointer', marginTop: 4, padding: 0 }}>
+                Forgot password?
+              </button>
+            )}
           </div>
-          {tab === "signin" && (
-            <button type="button" className="auth-field__forgot" onClick={() => setTab("forgot")} style={{ background: 'none', border: 'none', cursor: 'pointer', marginTop: 4, padding: 0 }}>
-              Forgot password?
-            </button>
-          )}
-        </div>)}
+        )}
 
         {/* Success message */}
         {successMsg && (
@@ -455,8 +277,8 @@ export default function Auth() {
             ? "Please wait…"
             : tab === "forgot"
             ? "Send Reset Link →"
-            : authMethod === "phone"
-            ? (otpStep ? "Verify OTP →" : "Send OTP →")
+            : authMethod === "magiclink"
+            ? "Send Magic Link →"
             : tab === "signin" ? "Sign In →" : "Create Account →"}
         </button>
       </form>

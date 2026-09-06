@@ -53,38 +53,6 @@ def _send_email(to_email: str, subject: str, html_body: str) -> None:
         log.warning("Email alert failed: %s", exc)
 
 
-# ── SMS ───────────────────────────────────────────────────────────────────────
-import httpx
-
-def _send_sms(to_phone: str, body: str) -> None:
-    """Send an SMS via Twilio. Silent-fails if Twilio not configured."""
-    if not settings.twilio_account_sid or not settings.twilio_from_number:
-        log.debug("Twilio not configured — skipping SMS alert.")
-        return
-
-    try:
-        if settings.twilio_api_key and settings.twilio_api_secret:
-            auth = (settings.twilio_api_key, settings.twilio_api_secret)
-        elif settings.twilio_auth_token:
-            auth = (settings.twilio_account_sid, settings.twilio_auth_token)
-        else:
-            log.warning("Twilio auth not configured — skipping SMS alert.")
-            return
-
-        response = httpx.post(
-            f"https://api.twilio.com/2010-04-01/Accounts/{settings.twilio_account_sid}/Messages.json",
-            data={
-                "From": settings.twilio_from_number,
-                "To": to_phone,
-                "Body": body,
-            },
-            auth=auth,
-            timeout=10.0,
-        )
-        response.raise_for_status()
-        log.info("SMS alert sent to %s", to_phone)
-    except Exception as exc:
-        log.warning("SMS alert failed: %s", exc)
 
 
 # ── Notification record ───────────────────────────────────────────────────────
@@ -120,7 +88,7 @@ def dispatch_threshold_alert(
     db: Session,
     user_id: uuid.UUID,
     user_email: str | None,
-    user_phone: str | None,
+
     station_id: str,
     aqi: float,
     category: str,
@@ -133,7 +101,7 @@ def dispatch_threshold_alert(
         db           — open SQLAlchemy session (for persisting the notification)
         user_id      — UUID of the user to notify
         user_email   — email address for SMTP channel
-        user_phone   — phone number for SMS channel
+
         station_id   — station that breached the threshold
         aqi          — current predicted AQI value
         category     — AQI category string (e.g. "Unhealthy")
@@ -169,6 +137,4 @@ def dispatch_threshold_alert(
         """
         _send_email(user_email, title, html)
 
-    # 3. SMS
-    if user_phone:
-        _send_sms(user_phone, body)
+

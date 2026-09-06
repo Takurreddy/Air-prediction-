@@ -28,18 +28,9 @@ class Settings(BaseSettings):
     minio_root_password: str = ""
     minio_bucket_ml: str = "ml-artifacts"
 
-    # ── Auth ──────────────────────────────────────────────────────────────────
-    jwt_secret_key: str
-    jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 60
-    otp_expire_minutes: int = 5
-    otp_max_attempts: int = 5
-    otp_dev_mode: bool = False
-    twilio_account_sid: str = ""
-    twilio_auth_token: str = ""
-    twilio_api_key: str = ""
-    twilio_api_secret: str = ""
-    twilio_from_number: str = ""
+    # ── Auth (Supabase) ───────────────────────────────────────────────────────
+    supabase_url: str = ""
+    supabase_key: str = ""
     clerk_enabled: bool = False
     clerk_jwks_url: str = "https://api.clerk.com/v1/jwks"
     clerk_issuer: str = ""

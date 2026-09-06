@@ -1,22 +1,14 @@
 """
-Auth helpers: password hashing, JWT creation/decoding, FastAPI dependencies.
+Auth helpers: FastAPI dependencies for Supabase JWT verification.
 """
 from __future__ import annotations
 
-import uuid
-import hashlib
-import hmac
 import logging
-import secrets
-import smtplib
-from email.mime.text import MIMEText
-from datetime import datetime, timedelta, timezone
+import uuid
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import httpx
-from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -25,237 +17,30 @@ from app.models.user import User
 
 log = logging.getLogger(__name__)
 
-# ── Password hashing ──────────────────────────────────────────────────────────
-_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-def hash_password(plain: str) -> str:
-    return _pwd_context.hash(plain)
-
-
-def verify_password(plain: str, hashed: str) -> bool:
-    return _pwd_context.verify(plain, hashed)
-
-
-def normalize_phone(phone_number: str) -> str:
-    raw = phone_number.strip().replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
-    if raw.startswith("00"):
-        raw = "+" + raw[2:]
-    if not raw.startswith("+") or not raw[1:].isdigit() or not 8 <= len(raw[1:]) <= 15:
-        raise ValueError("Use an international phone number, for example +919876543210.")
-    return raw
-
-
-def generate_otp() -> str:
-    return f"{secrets.randbelow(1_000_000):06d}"
-
-
-def hash_otp(phone_number: str, code: str) -> str:
-    message = f"{phone_number}:{code}".encode()
-    return hmac.new(settings.jwt_secret_key.encode(), message, hashlib.sha256).hexdigest()
-
-
-def send_otp_sms(phone_number: str, code: str) -> None:
-    """Deliver OTP through Twilio; only allow a local fallback in explicit dev mode."""
-    if not settings.twilio_account_sid or not settings.twilio_from_number:
-        if settings.otp_dev_mode:
-            log.warning("OTP dev mode enabled for %s", phone_number)
-            return
-        raise RuntimeError("OTP delivery is not configured.")
-
-    # Use API Key if provided, otherwise fallback to Account Auth Token
-    if settings.twilio_api_key and settings.twilio_api_secret:
-        auth = (settings.twilio_api_key, settings.twilio_api_secret)
-    elif settings.twilio_auth_token:
-        auth = (settings.twilio_account_sid, settings.twilio_auth_token)
-    else:
-        raise RuntimeError("Twilio authentication is not configured.")
-
-    response = httpx.post(
-        f"https://api.twilio.com/2010-04-01/Accounts/{settings.twilio_account_sid}/Messages.json",
-        data={
-            "From": settings.twilio_from_number,
-            "To": phone_number,
-            "Body": f"Your AirAware OTP is {code}. It expires in {settings.otp_expire_minutes} minutes.",
-        },
-        auth=auth,
-        timeout=10.0,
-    )
-    response.raise_for_status()
-
-
-# ── JWT ───────────────────────────────────────────────────────────────────────
 _oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=True)
 _oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
-_clerk_jwks_cache: dict | None = None
 
 
-def create_access_token(data: dict) -> tuple[str, int]:
-    """
-    Encode `data` into a signed JWT.
-
-    Returns:
-        (token_string, expires_in_seconds)
-    """
-    expire = datetime.now(timezone.utc) + timedelta(
-        minutes=settings.access_token_expire_minutes
-    )
-    payload = {**data, "exp": expire}
-    token = jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
-    return token, settings.access_token_expire_minutes * 60
-
-
-def generate_password_reset_token(email: str) -> str:
-    """Generate a short-lived token for password reset."""
-    expire = datetime.now(timezone.utc) + timedelta(minutes=15)
-    payload = {"sub": email, "exp": expire, "type": "reset_password"}
-    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
-
-
-def verify_password_reset_token(token: str) -> str | None:
-    """Verify the reset token and return the email address if valid."""
-    try:
-        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
-        if payload.get("type") != "reset_password":
-            return None
-        return payload.get("sub")
-    except JWTError:
-        return None
-
-
-def send_password_reset_email(email_to: str, token: str) -> None:
-    """Send the password reset link to the user's email, or print to console if SMTP is unconfigured."""
-    reset_link = f"{settings.frontend_url}/reset-password?token={token}"
-    
-    if not settings.smtp_host or not settings.smtp_user:
-        log.warning("=========================================================")
-        log.warning(f"SMTP NOT CONFIGURED. Reset link for {email_to}:")
-        log.warning(reset_link)
-        log.warning("=========================================================")
-        return
-
-    msg = MIMEText(f"Click the following link to reset your password:\n\n{reset_link}\n\nThis link will expire in 15 minutes.")
-    msg["Subject"] = "AirAware Password Reset"
-    msg["From"] = settings.smtp_user
-    msg["To"] = email_to
-
-    try:
-        with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
-            server.starttls()
-            server.login(settings.smtp_user, settings.smtp_password)
-            server.send_message(msg)
-    except Exception as e:
-        log.error(f"Failed to send password reset email: {e}")
-        raise RuntimeError("Failed to send password reset email.") from e
-
-
-def _decode_token(token: str) -> uuid.UUID:
-    """
-    Decode a JWT and return the user UUID stored in the `sub` claim.
-    Raises HTTP 401 on any failure.
-    """
-    credentials_exc = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials.",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(
-            token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
-        )
-        sub: str | None = payload.get("sub")
-        if sub is None:
-            raise credentials_exc
-        return uuid.UUID(sub)
-    except (JWTError, ValueError):
-        raise credentials_exc
-
-
-def _fetch_clerk_jwks() -> dict:
-    global _clerk_jwks_cache
-    if _clerk_jwks_cache is not None:
-        return _clerk_jwks_cache
-
-    response = httpx.get(settings.clerk_jwks_url, timeout=5.0)
-    response.raise_for_status()
-    _clerk_jwks_cache = response.json()
-    return _clerk_jwks_cache
-
-
-def _decode_clerk_token(token: str) -> dict:
-    if not settings.clerk_enabled:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    credentials_exc = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials.",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    try:
-        header = jwt.get_unverified_header(token)
-    except JWTError as exc:
-        raise credentials_exc from exc
-
-    kid = header.get("kid")
-    if not kid:
-        raise credentials_exc
-
-    try:
-        jwks = _fetch_clerk_jwks()
-    except httpx.HTTPError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Clerk JWKS fetch failed: {exc}",
-        ) from exc
-
-    keys = jwks.get("keys", [])
-    key = next((entry for entry in keys if entry.get("kid") == kid), None)
-    if key is None:
-        raise credentials_exc
-
-    decode_kwargs = {
-        "algorithms": ["RS256"],
-    }
-    if settings.clerk_issuer:
-        decode_kwargs["issuer"] = settings.clerk_issuer
-    if settings.clerk_audience:
-        decode_kwargs["audience"] = settings.clerk_audience
-    else:
-        decode_kwargs["options"] = {"verify_aud": False}
-
-    try:
-        return jwt.decode(token, key, **decode_kwargs)
-    except JWTError as exc:
-        raise credentials_exc from exc
-
-
-def _upsert_user_from_clerk_claims(claims: dict, db: Session) -> User:
-    email = (
-        claims.get("email")
-        or claims.get("email_address")
-        or claims.get("https://clerk.dev/email")
-    )
+def _upsert_user_from_supabase(user_data: dict, db: Session) -> User:
+    email = user_data.get("email")
     if not email:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=(
-                "Clerk token is missing email claim. Configure your Clerk JWT template "
-                "to include `email`."
-            ),
+            detail="Supabase token is missing email.",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
+    
+    # Try to find by email
     user = db.query(User).filter(User.email == email).first()
+    
+    user_metadata = user_data.get("user_metadata", {})
+    full_name = user_metadata.get("full_name") or user_metadata.get("name")
+    
     if user is None:
         user = User(
             email=email,
-            hashed_password=hash_password(uuid.uuid4().hex),
-            full_name=claims.get("name") or claims.get("given_name"),
+            hashed_password="[SUPABASE_AUTH_MANAGED]", # Placeholder since Supabase manages passwords
+            full_name=full_name,
             is_verified=True,
         )
         db.add(user)
@@ -263,7 +48,6 @@ def _upsert_user_from_clerk_claims(claims: dict, db: Session) -> User:
         db.refresh(user)
         return user
 
-    full_name = claims.get("name") or claims.get("given_name")
     needs_update = False
     if full_name and user.full_name != full_name:
         user.full_name = full_name
@@ -271,6 +55,7 @@ def _upsert_user_from_clerk_claims(claims: dict, db: Session) -> User:
     if not user.is_verified:
         user.is_verified = True
         needs_update = True
+        
     if needs_update:
         db.commit()
         db.refresh(user)
@@ -278,22 +63,36 @@ def _upsert_user_from_clerk_claims(claims: dict, db: Session) -> User:
 
 
 def _resolve_user_from_token(token: str, db: Session) -> User:
-    try:
-        user_id = _decode_token(token)
-        user = db.query(User).filter(User.id == user_id, User.is_active.is_(True)).first()
-        if user is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found or inactive.",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        return user
-    except HTTPException as jwt_error:
-        if not settings.clerk_enabled:
-            raise jwt_error
+    credentials_exc = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    if not settings.supabase_url or not settings.supabase_key:
+        log.error("Supabase URL or Key is not configured in environment variables.")
+        raise HTTPException(status_code=500, detail="Internal Auth Configuration Error")
 
-    clerk_claims = _decode_clerk_token(token)
-    user = _upsert_user_from_clerk_claims(clerk_claims, db)
+    # Call Supabase Auth API to get user details using the access token
+    try:
+        response = httpx.get(
+            f"{settings.supabase_url}/auth/v1/user",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "apikey": settings.supabase_key,
+            },
+            timeout=5.0
+        )
+        if response.status_code != 200:
+            log.warning(f"Supabase auth failed: {response.text}")
+            raise credentials_exc
+            
+        user_data = response.json()
+    except httpx.RequestError as exc:
+        log.error(f"Error reaching Supabase API: {exc}")
+        raise HTTPException(status_code=503, detail="Auth provider unavailable")
+
+    user = _upsert_user_from_supabase(user_data, db)
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

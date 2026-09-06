@@ -1,72 +1,65 @@
 /**
- * AuthContext — JWT-based auth backed by the FastAPI backend.
- * No Clerk dependency. Token stored in localStorage.
+ * AuthContext — JWT-based auth backed by Supabase.
  */
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import { supabase } from "../utils/supabase";
 
 const AuthContext = createContext(null);
 
-const TOKEN_KEY = "aq_access_token";
-const USER_KEY  = "aq_user";
-
 export function AuthProvider({ children }) {
-  const [token,     setToken]     = useState(() => localStorage.getItem(TOKEN_KEY) || null);
-  const [user,      setUser]      = useState(() => {
-    try {
-      const raw = localStorage.getItem(USER_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  });
-  const isLoading = false;
-
-  /* Persist token + user to localStorage whenever they change */
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem(TOKEN_KEY, token);
-    } else {
-      localStorage.removeItem(TOKEN_KEY);
-    }
-  }, [token]);
+  const [session, setSession] = useState(null);
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(USER_KEY);
-    }
-  }, [user]);
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
 
-  /**
-   * Called right after a successful /auth/login or /auth/signup response.
-   * @param {string} accessToken  — JWT from the backend
-   * @param {object} userData     — { email, full_name } (partial is fine)
-   */
-  const login = useCallback((accessToken, userData = {}) => {
-    setToken(accessToken);
-    setUser(userData);
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  /** Clear session */
-  const logout = useCallback(() => {
-    setToken(null);
-    setUser(null);
+  const login = useCallback((accessToken, userData = {}) => {
+    // Left for compatibility if called manually, but Supabase handles this automatically via onAuthStateChange
+  }, []);
+
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
   }, []);
 
   /**
    * Returns the stored JWT — used by apiClient for authenticated requests.
    */
-  const getAuthToken = useCallback(async () => token, [token]);
+  const getAuthToken = useCallback(async () => {
+    if (!session) return null;
+    
+    // Check if token is expired, if so get a fresh session
+    const expiresAt = session.expires_at;
+    if (expiresAt && expiresAt < (Date.now() / 1000) + 10) {
+       const { data } = await supabase.auth.getSession();
+       return data.session?.access_token || null;
+    }
+    return session.access_token;
+  }, [session]);
 
   const value = useMemo(() => ({
-    user,
-    isAuthenticated: Boolean(token),
+    user: user ? { ...user, email: user.email, full_name: user.user_metadata?.full_name } : null,
+    isAuthenticated: Boolean(session),
     isLoading,
     login,
     logout,
     getAuthToken,
-  }), [user, token, isLoading, login, logout, getAuthToken]);
+  }), [user, session, isLoading, login, logout, getAuthToken]);
 
   return (
     <AuthContext.Provider value={value}>
