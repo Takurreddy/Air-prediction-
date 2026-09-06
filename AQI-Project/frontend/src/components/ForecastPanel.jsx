@@ -108,7 +108,7 @@ export default function ForecastPanel({ city, prediction, forecastPoints, peakId
   const currentAqi = prediction?.predicted_aqi || (forecastPoints && forecastPoints[0]) || 85;
 
   return (
-    <div className="forecast-panel" style={{ padding: "20px 24px" }}>
+    <div className="forecast-panel glass-panel" style={{ padding: "20px 24px" }}>
       <div className="forecast-panel__header" style={{ alignItems: "center", flexWrap: "wrap", gap: 10 }}>
         <div>
           <div className="section-label">📈 Trend Analysis &amp; Shaded Confidence Band</div>

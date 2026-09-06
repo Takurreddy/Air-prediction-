@@ -7,6 +7,9 @@ import Navbar from "./components/Navbar";
 import { useAuth } from "./context/AuthContext";
 import { supabase } from "./utils/supabase";
 
+import { ThemeProvider } from "./context/ThemeContext";
+import ParticleCanvas from "./components/ParticleCanvas";
+
 /* ── Lazy-loaded pages with code-splitting ── */
 const LandingPage  = lazy(() => import("./LandingPage"));
 const Dashboard    = lazy(() => import("./components/Dashboard"));
@@ -110,36 +113,48 @@ function App() {
   }, []);
 
   return (
-    <BrowserRouter>
-      <div className="app-shell">
-        <Navbar />
-        <OfflineBanner />
-        {alertVisible && <GlobalAlertBar onClose={() => setAlertVisible(false)} />}
-        {todos.length > 0 && (
-          <div style={{ padding: "1rem", background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
-            <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1rem" }}>Supabase Todos:</h3>
-            <ul style={{ margin: 0, paddingLeft: "1.5rem" }}>
-              {todos.map(todo => (
-                <li key={todo.id}>{todo.name}</li>
-              ))}
-            </ul>
+    <ThemeProvider>
+      <BrowserRouter>
+        <div className="app-shell" style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden' }}>
+          
+          {/* Ambient Glows */}
+          <div className="ambient-glow ambient-glow-1"></div>
+          <div className="ambient-glow ambient-glow-2"></div>
+          
+          {/* Interactive Background */}
+          <ParticleCanvas />
+
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <Navbar />
+            <OfflineBanner />
+            {alertVisible && <GlobalAlertBar onClose={() => setAlertVisible(false)} />}
+            {todos.length > 0 && (
+              <div style={{ padding: "1rem", background: "var(--bg-surface)", borderBottom: "1px solid var(--border-glass)", color: "var(--text-primary)" }}>
+                <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1rem" }}>Supabase Todos:</h3>
+                <ul style={{ margin: 0, paddingLeft: "1.5rem" }}>
+                  {todos.map(todo => (
+                    <li key={todo.id}>{todo.name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <Suspense fallback={<PageSpinner />}>
+              <Routes>
+                <Route path="/"              element={<LandingPage />} />
+                <Route path="/auth"          element={<PublicOnlyRoute><Auth /></PublicOnlyRoute>} />
+                <Route path="/reset-password" element={<PublicOnlyRoute><ResetPassword /></PublicOnlyRoute>} />
+                <Route path="/about"         element={<About />} />
+                <Route path="/dashboard"     element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/route-planner" element={<ProtectedRoute><RoutePlanner /></ProtectedRoute>} />
+                <Route path="/alerts"        element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
+                <Route path="/prediction"    element={<ProtectedRoute><Prediction /></ProtectedRoute>} />
+                <Route path="/exposure"      element={<ProtectedRoute><Exposure /></ProtectedRoute>} />
+              </Routes>
+            </Suspense>
           </div>
-        )}
-        <Suspense fallback={<PageSpinner />}>
-          <Routes>
-            <Route path="/"              element={<LandingPage />} />
-            <Route path="/auth"          element={<PublicOnlyRoute><Auth /></PublicOnlyRoute>} />
-            <Route path="/reset-password" element={<PublicOnlyRoute><ResetPassword /></PublicOnlyRoute>} />
-            <Route path="/about"         element={<About />} />
-            <Route path="/dashboard"     element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/route-planner" element={<ProtectedRoute><RoutePlanner /></ProtectedRoute>} />
-            <Route path="/alerts"        element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
-            <Route path="/prediction"    element={<ProtectedRoute><Prediction /></ProtectedRoute>} />
-            <Route path="/exposure"      element={<ProtectedRoute><Exposure /></ProtectedRoute>} />
-          </Routes>
-        </Suspense>
-      </div>
-    </BrowserRouter>
+        </div>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

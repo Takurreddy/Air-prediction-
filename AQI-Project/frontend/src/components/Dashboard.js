@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import runtimeConfig from "../config/runtimeConfig";
 import CITIES from "../config/cities";
 import useLocationTranslation from "../hooks/useLocationTranslation";
+import Card3D from "./Card3D";
 
 import {
   fetchAirQualityByCity,
@@ -681,7 +682,7 @@ export default function Dashboard() {
 
         {/* stats panel */}
         {station && (
-          <div className="aq-stats">
+          <Card3D className="aq-stats" style={{ padding: '20px' }}>
             <div className="section-label">{t('dashboard.mainStats')}</div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
@@ -756,7 +757,7 @@ export default function Dashboard() {
 
             <SocialShare station={station} aqi={displayAqi} />
             {error && <p className="status-message status-error">{error}</p>}
-          </div>
+          </Card3D>
         )}
         {loading && <p style={{ color: "var(--text-muted)", fontSize: 13 }}>Loading…</p>}
       </aside>
@@ -782,7 +783,7 @@ export default function Dashboard() {
         <div style={{ flex: 1, minHeight: 380, position: "relative", borderRadius: "var(--radius-lg)", overflow: "hidden", background: "var(--bg-panel)", border: "1px solid var(--border)" }}>
           {/* popup info card (HUD) */}
           {showPopup && station && (
-            <div className="aq-popup">
+            <div className="aq-popup glass-panel">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div style={{ flex: 1 }}>
                   <div className="aq-popup__title">
@@ -858,7 +859,7 @@ export default function Dashboard() {
       {/* ── Favorite Locations Modal Drawer ── */}
       {showFavModal && (
         <div className="aq-fav-modal-backdrop" onClick={() => setShowFavModal(false)}>
-          <div className="aq-fav-modal" onClick={e => e.stopPropagation()}>
+          <div className="aq-fav-modal glass-panel" onClick={e => e.stopPropagation()}>
             <div className="aq-fav-modal__header">
               <div className="aq-fav-modal__title">
                 <BookmarkIcon /> Favorites

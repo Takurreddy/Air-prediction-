@@ -180,7 +180,7 @@ export default function Prediction() {
   return (
     <div className="forecast-page">
       {/* ── Top controls & quick chips ── */}
-      <div className="forecast-panel" style={{ padding: "20px 24px" }}>
+      <div className="forecast-panel glass-panel" style={{ padding: "20px 24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
           <div>
             <div className="section-label"><TrendIcon /> AI Forecasting Center</div>
@@ -277,7 +277,7 @@ export default function Prediction() {
 
       {/* ── Pollutant breakdown grid ── */}
       {prediction && (
-        <div className="forecast-panel" style={{ padding: "20px 24px" }}>
+        <div className="forecast-panel glass-panel" style={{ padding: "20px 24px" }}>
           <div className="section-label"><TrendIcon /> Predicted Atmospheric Parameters (Peak Hour)</div>
           <div className="stats-grid" style={{ marginTop: 12, gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" }}>
             {[

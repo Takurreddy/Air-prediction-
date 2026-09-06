@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
+import ThemeToggle from "./ThemeToggle";
 
 /* ── icons ── */
 const WindIcon = () => (
@@ -80,13 +81,7 @@ export default function Navbar() {
 
       {/* ── Right controls ── */}
       <div className="nav-right">
-        <button className="nav-theme-btn" type="button" onClick={() => {
-          const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-          document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
-          setTheme(isLight ? 'dark' : 'light');
-        }}>
-          {theme === 'light' ? '☀️' : <MoonIcon />} {theme === 'light' ? t('nav.light') : t('nav.dark')}
-        </button>
+        <ThemeToggle />
 
         <div style={{ position: "relative" }}>
           <select 
