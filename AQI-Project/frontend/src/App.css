@@ -186,11 +186,18 @@ input, textarea, [contenteditable="true"] {
   display: flex; align-items: center; gap: 5px;
   padding: 5px 11px; border-radius: var(--radius);
   background: rgba(255,255,255,.04); border: 1px solid var(--glass-border);
-  backdrop-filter: blur(8px); color: var(--text-muted); font-size: 12px; cursor: pointer;
+  backdrop-filter: blur(8px); color: var(--text-main); font-size: 12px; cursor: pointer;
   transition: border-color 200ms, color 200ms, background 200ms;
+  outline: none;
 }
 .nav-theme-btn:hover, .nav-lang-btn:hover { border-color: var(--glass-border-hover); color: var(--text-main); background: rgba(255,255,255,.08); }
 .nav-theme-btn svg { width: 13px; height: 13px; }
+
+/* Fix select options in dark/light mode */
+.nav-lang-btn option {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+}
 
 .nav-live { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); white-space: nowrap; line-height: 1.4; }
 .nav-live__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green-lt); box-shadow: 0 0 5px var(--green-lt); flex-shrink: 0; }

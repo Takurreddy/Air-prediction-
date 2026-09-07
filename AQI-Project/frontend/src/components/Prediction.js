@@ -183,8 +183,8 @@ export default function Prediction() {
       <div className="forecast-panel glass-panel" style={{ padding: "20px 24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
           <div>
-            <div className="section-label"><TrendIcon /> AI Forecasting Center</div>
-            <h2 style={{ margin: 0, fontSize: 20 }}>24-Hour LSTM Air Quality Prediction</h2>
+            <div className="section-label"><TrendIcon /> {t('forecast.title', 'AI Forecasting Center')}</div>
+            <h2 style={{ margin: 0, fontSize: 20 }}>{t('forecast.subtitle', '24-Hour LSTM Air Quality Prediction')}</h2>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button
@@ -193,7 +193,7 @@ export default function Prediction() {
               onClick={() => runForecastForStation(city, station)}
               disabled={isLoading || !station}
             >
-              {isLoading ? "Analyzing Data…" : "▶ Refresh Forecast"}
+              {isLoading ? t('forecast.forecasting', 'Analyzing Data…') : `▶ ${t('forecast.btnRun', 'Refresh Forecast')}`}
             </button>
           </div>
         </div>

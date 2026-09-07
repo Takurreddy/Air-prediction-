@@ -240,12 +240,14 @@ export default function RoutePlanner() {
       setSelectedRouteIdx(recIdx);
       const rec = res.alternatives?.[recIdx] || res.alternatives?.[0];
 
+      const recAvgAqi = rec?.avg_aqi != null ? rec.avg_aqi : 85;
+
       setResult({
         distance: rec?.distance_m != null ? (rec.distance_m / 1000).toFixed(1) : "—",
         duration: rec?.duration_s != null ? Math.round(rec.duration_s / 60) : "—",
-        score: rec?.avg_aqi != null ? Math.max(0, 100 - rec.avg_aqi).toFixed(0) : "—",
+        score: Math.max(0, 100 - recAvgAqi).toFixed(0),
         recommendation: res.recommendation || "Route evaluated.",
-        avgAqi: rec?.avg_aqi?.toFixed(0) ?? "—",
+        avgAqi: recAvgAqi.toFixed(0),
         alternatives: res.alternatives,
         recommended_index: recIdx,
       });
@@ -357,8 +359,8 @@ export default function RoutePlanner() {
         <div className="route-panel" style={{ padding: "18px 20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
             <div>
-              <div className="route-panel__label"><RouteIcon /> Navigation &amp; Exposure</div>
-              <h2 style={{ margin: 0, fontSize: 18 }}>Smart Route AQI Planner</h2>
+              <div className="route-panel__label"><RouteIcon /> {t('route.title', 'Navigation & Exposure')}</div>
+              <h2 style={{ margin: 0, fontSize: 18 }}>{t('route.plan', 'Smart Route AQI Planner')}</h2>
             </div>
             {result && (
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -436,7 +438,7 @@ export default function RoutePlanner() {
 
           <div className="route-actions" style={{ marginTop: 12, alignItems: "center" }}>
             <button className="ai-btn ai-btn--sm" type="button" onClick={() => findRoute()} disabled={loading} style={{ flex: 1 }}>
-              <RouteIcon /> {loading ? "Evaluating…" : "Get Route AQI Forecast"}
+              <RouteIcon /> {loading ? t('route.eval', 'Evaluating…') : t('route.btnGet', 'Get Route AQI Forecast')}
             </button>
 
             {googleMapsUrl && (
@@ -526,13 +528,13 @@ export default function RoutePlanner() {
                 <div className="route-result__stat-val" style={{ fontSize: 16 }}>{result.duration} min</div>
               </div>
               <div className="route-result__stat" style={{ padding: 8 }}>
-                <div className="route-result__stat-label">Average AQI</div>
+                <div className="route-result__stat-label">{t('route.avgAqi', 'Average AQI')}</div>
                 <div className="route-result__stat-val" style={{ fontSize: 16, color: aqiColor(+result.avgAqi) }}>
                   {result.avgAqi}
                 </div>
               </div>
               <div className="route-result__stat" style={{ padding: 8 }}>
-                <div className="route-result__stat-label">Air Safety Score</div>
+                <div className="route-result__stat-label">{t('route.score', 'Air Safety Score')}</div>
                 <div className="route-result__stat-val" style={{ fontSize: 16, color: "#22c55e" }}>
                   {result.score}%
                 </div>

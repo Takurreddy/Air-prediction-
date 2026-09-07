@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "./LandingPage.css";
 
 export default function LandingPage() {
+  const { t } = useTranslation();
   const heroVisualRef = useRef(null);
 
   useEffect(() => {
@@ -21,35 +23,35 @@ export default function LandingPage() {
       <section className="lp-hero" id="hero">
         <div className="lp-hero__content">
           <span className="lp-eyebrow">
-            <span className="lp-eyebrow__dot" /> AI-POWERED AIR QUALITY INTELLIGENCE
+            <span className="lp-eyebrow__dot" /> {t('landing.aiPowered')}
           </span>
 
           <h1 className="lp-hero__headline">
-            Predict Cleaner Journeys <br />
-            <span className="lp-hero__accent">Before You Travel</span>
+            {t('landing.predictCleaner')} <br />
+            <span className="lp-hero__accent">{t('landing.beforeTravel')}</span>
           </h1>
 
           <p className="lp-hero__sub">
-            Know tomorrow's air quality today. AirAware combines AI, environmental intelligence, and route optimization to help you make healthier travel decisions.
+            {t('landing.heroSub')}
           </p>
 
           <div className="lp-hero__ctas">
-            <NavLink to="/auth" className="lp-btn lp-btn--primary">Get Started</NavLink>
-            <a href="#product" className="lp-btn lp-btn--ghost">Explore Product</a>
+            <NavLink to="/auth" className="lp-btn lp-btn--primary">{t('landing.getStarted')}</NavLink>
+            <a href="#product" className="lp-btn lp-btn--ghost">{t('landing.exploreProduct')}</a>
           </div>
 
           <div className="lp-hero__stats">
             <div className="lp-stat">
               <strong>72hr</strong>
-              <span>Rolling AI Forecast</span>
+              <span>{t('landing.rollingForecast')}</span>
             </div>
             <div className="lp-stat">
               <strong>±8%</strong>
-              <span>LSTM Error Margin</span>
+              <span>{t('landing.lstmError')}</span>
             </div>
             <div className="lp-stat">
               <strong>150m</strong>
-              <span>Spatial Resolution</span>
+              <span>{t('landing.spatialRes')}</span>
             </div>
           </div>
         </div>
@@ -59,16 +61,16 @@ export default function LandingPage() {
           <div className="lp-engine-card">
             <div className="lp-engine-card__header">
               <span className="lp-engine-card__status">
-                <span className="lp-engine-card__dot" /> AirAware Engine Active
+                <span className="lp-engine-card__dot" /> {t('landing.engineActive')}
               </span>
-              <span className="lp-engine-card__live">Live Prediction</span>
+              <span className="lp-engine-card__live">{t('landing.livePrediction')}</span>
             </div>
 
             <div className="lp-engine-card__body">
               <div className="lp-engine-card__meta">
-                <span className="lp-engine-card__sub">24h Forecast</span>
+                <span className="lp-engine-card__sub">{t('landing.h24Forecast')}</span>
                 <div className="lp-engine-card__aqi">
-                  178 <span className="lp-engine-card__trend">+37% Better</span>
+                  178 <span className="lp-engine-card__trend">{t('landing.better37')}</span>
                 </div>
               </div>
 
@@ -85,12 +87,12 @@ export default function LandingPage() {
                   <circle cx="150" cy="50" r="5" fill="#3b82f6" />
                   <foreignObject x="100" y="55" width="80" height="40">
                     <div className="lp-graph-badge lp-graph-badge--red">
-                      AQI 284<br /><small>Hyderabad</small>
+                      AQI 284<br /><small>{t('landing.hyderabad')}</small>
                     </div>
                   </foreignObject>
                   <foreignObject x="220" y="0" width="80" height="40">
                     <div className="lp-graph-badge lp-graph-badge--green">
-                      AQI 178<br /><small>Bengaluru</small>
+                      AQI 178<br /><small>{t('landing.bengaluru')}</small>
                     </div>
                   </foreignObject>
                 </svg>
@@ -100,11 +102,11 @@ export default function LandingPage() {
                 <div className="lp-safety-badge">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                   <div>
-                    <strong>Safe to Travel</strong>
-                    <p>Optimal route selected: 18% less exposure.</p>
+                    <strong>{t('landing.safeTravel')}</strong>
+                    <p>{t('landing.optimalRoute')}</p>
                   </div>
                 </div>
-                <NavLink to="/route-planner" className="lp-btn lp-btn--sm lp-btn--primary">Start Route</NavLink>
+                <NavLink to="/route-planner" className="lp-btn lp-btn--sm lp-btn--primary">{t('landing.startRoute')}</NavLink>
               </div>
             </div>
           </div>
@@ -118,21 +120,21 @@ export default function LandingPage() {
             <div className="lp-aura-container">
               <div className="lp-aura-blob" />
               <div className="lp-aura-tag lp-aura-tag--top">
-                <span>HAZARDOUS ZONE</span>
+                <span>{t('landing.hazardousZone')}</span>
                 <strong>AQI 342</strong>
               </div>
               <div className="lp-aura-tag lp-aura-tag--bottom">
-                <span>UNHEALTHY</span>
+                <span>{t('landing.unhealthy')}</span>
                 <strong>AQI 185</strong>
               </div>
             </div>
           </div>
 
           <div className="lp-split-text">
-            <span className="lp-tag-red">⚠️ THE REALITY</span>
-            <h2>You are navigating blindly through toxic air.</h2>
+            <span className="lp-tag-red">⚠️ {t('landing.theReality')}</span>
+            <h2>{t('landing.navigatingBlindly')}</h2>
             <p>
-              Every day, millions commute through invisible pollution corridors. Without real-time environmental intelligence, you unknowingly expose yourself to severe respiratory and cardiovascular risks.
+              {t('landing.millionsCommute')}
             </p>
           </div>
         </div>
@@ -142,21 +144,21 @@ export default function LandingPage() {
       <section className="lp-section lp-shift" id="shift">
         <div className="lp-split-section lp-split-section--reverse">
           <div className="lp-split-text">
-            <span className="lp-tag-blue">⏱ THE SHIFT</span>
-            <h2>Current AQI is already obsolete.</h2>
+            <span className="lp-tag-blue">⏱ {t('landing.theShift')}</span>
+            <h2>{t('landing.currentAqiObsolete')}</h2>
             <p>
-              Knowing the air quality <em>right now</em> doesn't help if your commute is in two hours. AirAware uses machine learning to forecast pollution spikes, allowing you to plan ahead instead of reacting too late.
+              {t('landing.knowingRightNow')}
             </p>
           </div>
 
           <div className="lp-split-visual">
             <div className="lp-forecast-card">
               <div className="lp-forecast-card__header">
-                <span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Hourly Forecast</span>
-                <span className="lp-chip-sm">AI MODEL v2</span>
+                <span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> {t('landing.hourlyForecast')}</span>
+                <span className="lp-chip-sm">{t('landing.aiModelV2')}</span>
               </div>
               <div className="lp-forecast-card__chart">
-                <div className="lp-hazard-line"><span>HAZARD THRESHOLD</span></div>
+                <div className="lp-hazard-line"><span>{t('landing.hazardThreshold')}</span></div>
                 <div className="lp-forecast-marker">
                   <span>AQI</span>
                   <strong>310</strong>
