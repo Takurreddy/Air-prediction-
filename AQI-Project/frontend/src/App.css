@@ -185,18 +185,42 @@ input, textarea, [contenteditable="true"] {
 .nav-theme-btn, .nav-lang-btn {
   display: flex; align-items: center; gap: 5px;
   padding: 5px 11px; border-radius: var(--radius);
-  background: rgba(255,255,255,.04); border: 1px solid var(--glass-border);
-  backdrop-filter: blur(8px); color: var(--text-main); font-size: 12px; cursor: pointer;
-  transition: border-color 200ms, color 200ms, background 200ms;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-main); font-size: 12px; font-weight: 500; cursor: pointer;
+  transition: border-color 200ms, color 200ms, background 200ms, box-shadow 200ms;
   outline: none;
+  min-width: 140px;
 }
-.nav-theme-btn:hover, .nav-lang-btn:hover { border-color: var(--glass-border-hover); color: var(--text-main); background: rgba(255,255,255,.08); }
+.nav-theme-btn:hover, .nav-lang-btn:hover { 
+  border-color: var(--glass-border-hover); 
+  color: var(--text-main); 
+  background: var(--glass-bg-strong);
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+}
+.nav-theme-btn:focus, .nav-lang-btn:focus {
+  border-color: var(--teal-lt);
+  box-shadow: 0 0 0 3px rgba(20,184,166,.15);
+}
 .nav-theme-btn svg { width: 13px; height: 13px; }
 
 /* Fix select options in dark/light mode */
 .nav-lang-btn option {
   background-color: var(--bg-card);
   color: var(--text-main);
+}
+
+/* Better arrow indicator for language selector */
+.nav-lang-btn {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8fa8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 32px;
+}
+
+[data-theme='light'] .nav-lang-btn {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
 }
 
 .nav-live { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); white-space: nowrap; line-height: 1.4; }

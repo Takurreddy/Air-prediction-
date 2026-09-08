@@ -88,7 +88,6 @@ export default function Navbar() {
             className="nav-lang-btn" 
             value={currentLang} 
             onChange={(e) => i18n.changeLanguage(e.target.value)}
-            style={{ paddingRight: "28px" }}
           >
             <option value="en">🌐 English</option>
             <option value="hi">🌐 हिंदी</option>

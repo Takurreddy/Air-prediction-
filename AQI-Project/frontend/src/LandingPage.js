@@ -175,46 +175,46 @@ export default function LandingPage() {
       {/* ══════════════════ INTELLIGENCE AT A GLANCE ══════════════════ */}
       <section className="lp-section lp-glance" id="product">
         <div className="lp-section__header">
-          <h2>Intelligence at a Glance</h2>
-          <p>A real-time, interactive dashboard that transforms complex environmental data into actionable travel intelligence.</p>
+          <h2>{t('landing.intelligenceGlance')}</h2>
+          <p>{t('landing.dashboardTransforms')}</p>
         </div>
 
         <div className="lp-dashboard-frame">
           <div className="lp-dashboard-mockup">
             <div className="lp-mockup-header">
-              <div className="lp-mockup-search">🔍 Search locations...</div>
+              <div className="lp-mockup-search">{t('landing.searchLocations')}</div>
               <div className="lp-mockup-actions"><span className="lp-mockup-dot" /><span className="lp-mockup-dot" /></div>
             </div>
 
             <div className="lp-mockup-grid">
               <div className="lp-mockup-nav">
-                <div className="lp-mockup-item active">📊 Overview</div>
-                <div className="lp-mockup-item">🗺️ AQI Map</div>
-                <div className="lp-mockup-item">🛣️ Route Planner</div>
-                <div className="lp-mockup-item">📈 Forecast</div>
+                <div className="lp-mockup-item active">{t('landing.overview')}</div>
+                <div className="lp-mockup-item">{t('landing.aqiMap')}</div>
+                <div className="lp-mockup-item">{t('landing.routePlanner')}</div>
+                <div className="lp-mockup-item">{t('landing.forecast')}</div>
               </div>
 
               <div className="lp-mockup-main">
                 <div className="lp-mockup-card">
-                  <div className="lp-card-title">AQI Forecast <span className="lp-chip-sm">AI Powered</span></div>
+                  <div className="lp-card-title">{t('landing.aqiForecast')} <span className="lp-chip-sm">{t('landing.aiPowered')}</span></div>
                   <div className="lp-mockup-curve" />
                 </div>
                 <div className="lp-mockup-card">
-                  <div className="lp-card-title">Health Score</div>
-                  <div className="lp-mockup-gauge"><strong>82</strong><span>Good</span></div>
+                  <div className="lp-card-title">{t('landing.healthScore')}</div>
+                  <div className="lp-mockup-gauge"><strong>82</strong><span>{t('landing.good')}</span></div>
                 </div>
               </div>
             </div>
 
             {/* Labeled pins */}
             <div className="lp-callout-pin lp-callout-pin--forecast">
-              <span className="lp-pin-dot" /> AQI Forecast
+              <span className="lp-pin-dot" /> {t('landing.aqiForecast')}
             </div>
             <div className="lp-callout-pin lp-callout-pin--health">
-              <span className="lp-pin-dot" /> Health Score
+              <span className="lp-pin-dot" /> {t('landing.healthScore')}
             </div>
             <div className="lp-callout-pin lp-callout-pin--map">
-              <span className="lp-pin-dot" /> Live Map
+              <span className="lp-pin-dot" /> {t('landing.liveMap')}
             </div>
           </div>
         </div>
@@ -223,40 +223,40 @@ export default function LandingPage() {
       {/* ══════════════════ FEATURE SUITE GRID ══════════════════ */}
       <section className="lp-section lp-suite">
         <div className="lp-section__header">
-          <p className="lp-suite-subtitle">AirAware isn't just an air quality monitor. It's a complete environmental intelligence suite.</p>
+          <p className="lp-suite-subtitle">{t('landing.suiteSubtitle')}</p>
         </div>
 
         <div className="lp-suite-grid">
           <div className="lp-suite-card lp-suite-card--wide">
-            <h3>Interactive Map</h3>
-            <p>High-resolution pollution heatmaps for your city.</p>
+            <h3>{t('landing.interactiveMap')}</h3>
+            <p>{t('landing.highResHeatmaps')}</p>
             <div className="lp-suite-preview lp-suite-preview--map">
-              <div className="lp-preview-pill">AQI 145 · New Delhi</div>
+              <div className="lp-preview-pill">AQI 145 · {t('landing.newDelhi')}</div>
             </div>
           </div>
 
           <div className="lp-suite-card">
-            <h3>AI Forecast</h3>
-            <p>Tomorrow: <strong>AQI 110</strong> 📈</p>
+            <h3>{t('landing.aiForecast')}</h3>
+            <p>{t('landing.tomorrowAqi')}</p>
           </div>
 
           <div className="lp-suite-card">
-            <h3>Route Planner</h3>
-            <p>HYD → BLR <strong>18% Cleaner Route</strong></p>
+            <h3>{t('landing.routePlanner')}</h3>
+            <p>{t('landing.hydBlrCleaner')}</p>
           </div>
 
           <div className="lp-suite-card">
-            <h3>Moderate Activity</h3>
-            <p>😷 Mask Recommended</p>
+            <h3>{t('landing.moderateActivity')}</h3>
+            <p>{t('landing.maskRecommended')}</p>
           </div>
 
           <div className="lp-suite-card">
-            <h3>Smart Alerts</h3>
-            <p>🔔 Push notifications active</p>
+            <h3>{t('landing.smartAlerts')}</h3>
+            <p>{t('landing.pushActive')}</p>
           </div>
 
           <div className="lp-suite-card">
-            <h3>AQI Trends</h3>
+            <h3>{t('landing.aqiTrends')}</h3>
             <div className="lp-trend-bars">
               <div style={{ height: "40%" }} /><div style={{ height: "60%" }} /><div style={{ height: "80%" }} /><div style={{ height: "50%" }} />
             </div>
@@ -269,23 +269,23 @@ export default function LandingPage() {
         <div className="lp-workflow-steps">
           <div className="lp-wf-step">
             <div className="lp-wf-icon">📊</div>
-            <strong>Dashboard</strong>
-            <span>Unified overview</span>
+            <strong>{t('landing.dashboard')}</strong>
+            <span>{t('landing.unifiedOverview')}</span>
           </div>
           <div className="lp-wf-step">
             <div className="lp-wf-icon">🗺️</div>
-            <strong>AQI Map</strong>
-            <span>City-wide heatmaps</span>
+            <strong>{t('landing.aqiMap')}</strong>
+            <span>{t('landing.cityHeatmaps')}</span>
           </div>
           <div className="lp-wf-step">
             <div className="lp-wf-icon">🛣️</div>
-            <strong>Route Planner</strong>
-            <span>Healthier directions</span>
+            <strong>{t('landing.routePlanner')}</strong>
+            <span>{t('landing.healthierDirections')}</span>
           </div>
           <div className="lp-wf-step">
             <div className="lp-wf-icon">🔔</div>
-            <strong>Health Alerts</strong>
-            <span>Personalized notifications</span>
+            <strong>{t('landing.healthAlerts')}</strong>
+            <span>{t('landing.personalizedNotifs')}</span>
           </div>
         </div>
       </section>
@@ -293,9 +293,9 @@ export default function LandingPage() {
       {/* ══════════════════ CTA BANNER ══════════════════ */}
       <section className="lp-section lp-cta-banner">
         <div className="lp-cta-card">
-          <h2>Ready for cleaner air?</h2>
-          <p>Join AirAware today and start making smarter, healthier decisions before you step outside.</p>
-          <NavLink to="/auth" className="lp-btn lp-btn--white">Get Started for Free</NavLink>
+          <h2>{t('landing.readyCleaner')}</h2>
+          <p>{t('landing.joinToday')}</p>
+          <NavLink to="/auth" className="lp-btn lp-btn--white">{t('landing.getStartedFree')}</NavLink>
         </div>
       </section>
     </div>

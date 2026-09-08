@@ -714,6 +714,63 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {/* Average AQI & Air Safety Score */}
+            <div style={{ 
+              display: "flex", 
+              gap: 16, 
+              marginBottom: 16, 
+              padding: "12px 16px", 
+              background: "rgba(255,255,255,.03)", 
+              border: "1px solid var(--glass-border)", 
+              borderRadius: "var(--radius)",
+              backdropFilter: "blur(8px)",
+              flexWrap: "wrap"
+            }}>
+              <div style={{ 
+                display: "flex", 
+                flexDirection: "column", 
+                gap: 4,
+                flex: 1,
+                minWidth: 140
+              }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  {t('dashboard.avgAqi', 'Average AQI')}
+                </span>
+                <span style={{ 
+                  fontSize: 24, 
+                  fontWeight: 800, 
+                  color: aqiColor(displayAqi),
+                  fontFamily: "var(--font-mono)"
+                }}>
+                  {displayAqi}
+                </span>
+              </div>
+              <div style={{ 
+                width: 1, 
+                background: "var(--border-mid)",
+                marginTop: 4
+              }} />
+              <div style={{ 
+                display: "flex", 
+                flexDirection: "column", 
+                gap: 4,
+                flex: 1,
+                minWidth: 140
+              }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  {t('route.score', 'Air Safety Score')}
+                </span>
+                <span style={{ 
+                  fontSize: 24, 
+                  fontWeight: 800, 
+                  color: "#22c55e",
+                  fontFamily: "var(--font-mono)"
+                }}>
+                  {Math.max(0, 100 - displayAqi).toFixed(0)}%
+                </span>
+              </div>
+            </div>
+
             {/* Full pollutant grid with units */}
             <div className="pollutant-grid">
               {[
