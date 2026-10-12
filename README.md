@@ -1,122 +1,162 @@
-<div align="center">
-  <h1>🌬️ AirAware India</h1>
-  <p><strong>India's Premier Air Quality Monitoring & Route Planning Platform</strong></p>
+# AirAware India
 
-  [![React](https://img.shields.io/badge/Frontend-React-blue?style=for-the-badge&logo=react)](https://reactjs.org/)
-  [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
-  [![Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
-  [![Docker](https://img.shields.io/badge/Deployment-Docker-2496ED?style=for-the-badge&logo=docker)](https://www.docker.com/)
-  [![Twilio](https://img.shields.io/badge/Auth-Twilio-F22F46?style=for-the-badge&logo=twilio)](https://www.twilio.com/)
-</div>
+AirAware India is an air-quality monitoring and route-planning platform that helps people understand local pollution levels and make more informed travel decisions. It brings AQI information, pollutant details, route comparisons, and configurable pollution alerts into one interface.
 
-<br />
+**Live demo:** https://air-prediction.vercel.app/  
+**Repository:** https://github.com/Takurreddy/Air-prediction-
 
-## 🌟 Overview
+## Overview
 
-**AirAware India** is a comprehensive, interactive platform designed to help users track air quality, plan healthy routes, and receive critical pollution alerts across India. With a seamless user interface, multilingual support, and a powerful scalable backend, AirAware helps users mitigate their exposure to harmful pollutants (PM2.5, PM10, CO, NO₂, SO₂, O₃).
+AirAware India is designed to make air-quality information easier to explore and use. Users can check AQI conditions, review key pollutants, compare routes with air quality in mind, and configure alerts when pollution crosses a chosen threshold.
 
----
+The project also explores time-series forecasting for air-quality trends using an LSTM-based model.
 
-## ✨ Key Features
+## Features
 
-### 🗺️ Interactive AQI Dashboard
-- **Live Air Quality Index:** View real-time AQI readings across India.
-- **Smart Location:** One-click "📍 Locate Me" to instantly fetch data for the city nearest to you.
-- **CartoDB Voyager Maps:** Clean, English-localized map tiles for a premium and consistent viewing experience.
-- **Pollutant Breakdown:** Detailed metrics for major pollutants, along with temperature, humidity, and wind conditions.
+- **AQI dashboard:** View air-quality readings and pollutant details, including PM2.5, PM10, CO, NO₂, SO₂, and O₃.
+- **Location-aware results:** Use the current location to find nearby air-quality information.
+- **Air-quality-aware route planning:** Compare a conventional route with a lower-pollution alternative where supported by available data.
+- **Route exposure estimates:** Explore estimated pollution exposure at points along a journey.
+- **Pollution alerts:** Configure AQI thresholds and receive notifications through the supported notification setup.
+- **User accounts:** Authentication and saved user preferences.
+- **AQI forecasting:** An LSTM-based time-series forecasting component for exploring future air-quality trends.
 
-### 🚗 Smart Route Planner
-- **Health-Optimized Navigation:** Compares the "Fastest" route against the "🌿 Low-Pollution" route.
-- **Auto-Calculation:** Routes automatically generate and adapt as soon as you select your origin and destination.
-- **Waypoint Exposure Simulation:** Estimates your AQI exposure at various points throughout your journey.
+## How it works
 
-### 🔔 Mobile Notifications & Alerts
-- **Customizable Thresholds:** Set personalized AQI limits (down to 30 AQI) to trigger warnings.
-- **Twilio SMS Alerts:** Direct SMS alerts sent to your mobile phone when a threshold is breached.
-- **Health Profiles:** Tailor alerts based on specific sensitivities (e.g., Asthma, Elderly, Young Children).
+1. **Collect data** from configured air-quality and environmental data sources.
+2. **Process readings** into a consistent format for analysis and display.
+3. **Forecast trends** with the LSTM-based prediction component where historical sequences are available.
+4. **Serve results** through the FastAPI backend.
+5. **Present insights** in the React interface, including dashboard readings and route comparisons.
+6. **Send alerts** when configured thresholds are exceeded and the notification service is enabled.
 
-### 🔐 Secure Authentication
-- **Mobile OTP Login:** Fast and secure phone-based login powered by Twilio SMS.
-- **Standard Email:** Traditional email and password support for standard access.
-- **Supabase Cloud Database:** Secure, scalable, and reliable user data storage.
+## Technology stack
 
----
+- **Frontend:** React, React Router, React-Leaflet, CSS
+- **Backend and APIs:** Python, FastAPI
+- **Machine learning:** LSTM time-series forecasting
+- **Database:** PostgreSQL on Supabase; InfluxDB for time-series data
+- **Caching and background tasks:** Redis and background workers
+- **Maps and routing:** Leaflet, CartoDB, OSRM
+- **Authentication and notifications:** Supabase and Twilio
+- **Deployment:** Docker, Docker Compose, Vercel
 
-## 🌐 Tech Stack
+## Architecture
 
-**Frontend Architecture:**
-- **Framework:** React.js, React Router
-- **Maps:** React-Leaflet, CartoDB, OSRM (Routing)
-- **Styling:** Vanilla CSS (Glassmorphism, Dark/Light Mode)
-
-**Backend Architecture:**
-- **Framework:** Python, FastAPI
-- **Primary Database:** PostgreSQL (Hosted on Supabase)
-- **Time-Series DB:** InfluxDB (for historical AQI data)
-- **Caching & Queues:** Redis
-- **Auth & SMS:** Twilio REST API
-- **Deployment:** Docker & Docker Compose
-
----
-
-## 📂 Project Structure
-
-```bash
-📦 Air_Quality_prjt
- ┣ 📂 AQI-Project (Frontend)
- ┃ ┣ 📂 public
- ┃ ┗ 📂 src
- ┃   ┣ 📂 components  # UI components (Dashboard, RoutePlanner, Auth, etc.)
- ┃   ┣ 📂 config      # Constants and city data
- ┃   ┣ 📂 context     # Auth and state management
- ┃   ┗ 📂 services    # API clients
- ┃
- ┗ 📂 route-air-quality-backend (Backend)
-   ┣ 📂 app
-   ┃ ┣ 📂 api         # FastAPI public REST endpoints
-   ┃ ┣ 📂 routers     # Auth and Notification routers
-   ┃ ┣ 📂 services    # ML Interface, Alert Dispatcher
-   ┃ ┗ 📂 workers     # AQI Scheduler and background tasks
-   ┣ 📜 docker-compose.yml # Container orchestration
-   ┣ 📜 .env          # Environment variables (Twilio, Supabase, etc.)
-   ┗ 📜 requirements.txt
+```text
+Air-quality and environmental data
+              |
+              v
+     Data processing pipeline
+              |
+       +------+------+
+       |             |
+       v             v
+ Historical data   AQI forecasting
+       |          (LSTM model)
+       +------+------+
+              |
+              v
+       FastAPI backend
+              |
+       +------+----------------+
+       |                       |
+       v                       v
+ React dashboard         Route planning
+       |
+       v
+ Configurable AQI alerts
 ```
 
----
+## Project structure
 
-## 🚀 Getting Started
+The repository contains frontend and backend components. The names below reflect the structure documented for the project; exact paths may vary as the codebase evolves.
 
-The project uses Docker Compose to easily spin up the backend environment, including the FastAPI server, InfluxDB, Redis, and background workers.
+```text
+AirAware India/
+├── AQI-Project/                  # React frontend
+│   ├── public/
+│   └── src/
+│       ├── components/
+│       ├── config/
+│       ├── context/
+│       └── services/
+└── route-air-quality-backend/    # FastAPI backend
+    ├── app/
+    │   ├── api/
+    │   ├── routers/
+    │   ├── services/
+    │   └── workers/
+    ├── docker-compose.yml
+    └── requirements.txt
+```
 
-### 1. Environment Configuration
-Navigate to the backend directory and copy the example environment file:
+## Getting started
+
+### Prerequisites
+
+- Git
+- Node.js and npm
+- Python and pip
+- Docker Desktop with Docker Compose
+- Credentials for the external services enabled in your environment
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Takurreddy/Air-prediction-.git
+cd Air-prediction-
+```
+
+### 2. Configure the backend
+
+Move into the backend directory and create a local environment file from the provided example, if available:
+
 ```bash
 cd route-air-quality-backend
-cp .env.example .env
 ```
-Open `.env` and fill in your API keys (Twilio, Supabase Pooler Credentials, etc.).
 
-### 2. Backend Setup (Docker)
-Start the entire backend stack using Docker Compose:
+If the repository includes `.env.example`, copy it to `.env` and configure the required database, authentication, notification, and data-provider credentials. Keep secrets out of source control.
+
+### 3. Start backend services
+
+If the backend's Docker Compose configuration is available and configured:
+
 ```bash
-docker compose up -d
+docker compose up --build
 ```
-The FastAPI backend will now be running at `http://localhost:8000`.
 
-*Note: The backend connects to a cloud-hosted Supabase PostgreSQL database. Make sure you have run Alembic migrations (`alembic upgrade head`) to generate the tables.*
+Check the backend configuration for its API address and port. If database migrations are used, run the documented migration command before using database-backed features.
 
-### 3. Frontend Setup (React)
-Open a new terminal, navigate to the frontend directory, install dependencies, and start the app:
+### 4. Start the frontend
+
+Open a separate terminal, navigate to the frontend directory, install dependencies, and start the development server:
+
 ```bash
-cd AQI-Project/frontend
+cd AQI-Project
 npm install
 npm start
 ```
-The application will be available at `http://localhost:3000`.
+
+If the frontend is in a nested directory in your checkout, use the actual directory containing its `package.json`. Configure the frontend API base URL to point to your running backend.
+
+## Configuration and data
+
+The application can depend on external data providers, database services, mapping/routing services, and notification credentials. Configure only the services required by the features you want to run. Availability and coverage of live readings depend on the configured data sources.
+
+Never commit API keys, passwords, database connection strings, or private environment files. Use environment variables and keep `.env` files out of version control.
+
+## Future improvements
+
+- Expand historical AQI coverage and forecasting evaluation.
+- Improve route scoring with more granular pollution and travel data.
+- Add model evaluation metrics and reproducible experiments.
+- Improve monitoring, error handling, and test coverage.
+
+## Contributing
+
+Contributions and suggestions are welcome. Open an issue to discuss a bug or feature, or submit a pull request with a clear description of the change.
 
 ---
 
-<br/>
-<div align="center">
-  <i>Stay Safe, Breathe Better.</i>
-</div>
+*Stay informed. Make cleaner travel choices.*
